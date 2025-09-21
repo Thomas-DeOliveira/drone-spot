@@ -10,7 +10,7 @@ interface ProfileClientProps {
   user: {
     id: string;
     name: string | null;
-    email: string;
+    email: string | null;
     image: string | null;
     createdAt: Date;
     spots: Array<{

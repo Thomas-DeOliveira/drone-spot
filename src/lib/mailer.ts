@@ -24,13 +24,12 @@ export async function sendEmail({ to, subject, html, text }: SendEmailParams): P
   if (!from) throw new Error("EMAIL_FROM manquant. Ajoutez-le à votre .env");
 
   const client = getClient();
-  const result = await client.emails.send({
-    from,
-    to,
-    subject,
-    html,
-    text,
-  });
+  const payload: any = { from, to: Array.isArray(to) ? to : to, subject };
+  if (html && typeof html === "string") payload.html = html;
+  else if (text && typeof text === "string") payload.text = text;
+  else payload.text = ""; // garantir au moins un contenu
+
+  const result = await client.emails.send(payload);
 
   if ((result as any)?.error) {
     const err = (result as any).error;

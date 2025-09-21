@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 export async function GET(request: Request) {
+  const reqHeaders = await headers();
+  const envOrigin = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "";
+  const baseOrigin = envOrigin || new URL(reqHeaders.get("x-url") || request.url).origin;
   const { searchParams } = new URL(request.url);
   const token = searchParams.get("token");
 
   if (!token) {
-    return NextResponse.redirect(new URL(`/reset-password?error=Token manquant`, request.url));
+    return NextResponse.redirect(new URL(`/reset-password?error=Token manquant`, baseOrigin));
   }
 
   try {
@@ -17,18 +21,18 @@ export async function GET(request: Request) {
     });
 
     if (!verificationToken) {
-      return NextResponse.redirect(new URL(`/reset-password?error=Token invalide`, request.url));
+      return NextResponse.redirect(new URL(`/reset-password?error=Token invalide`, baseOrigin));
     }
 
     if (verificationToken.expires < new Date()) {
-      return NextResponse.redirect(new URL(`/reset-password?error=Token expiré`, request.url));
+      return NextResponse.redirect(new URL(`/reset-password?error=Token expiré`, baseOrigin));
     }
 
     // Rediriger vers la page de réinitialisation avec le token
-    return NextResponse.redirect(new URL(`/reset-password?token=${token}`, request.url));
+    return NextResponse.redirect(new URL(`/reset-password?token=${token}`, baseOrigin));
   } catch (error) {
     console.error("Erreur lors de la vérification du token:", error);
-    return NextResponse.redirect(new URL(`/reset-password?error=Erreur interne`, request.url));
+    return NextResponse.redirect(new URL(`/reset-password?error=Erreur interne`, baseOrigin));
   }
 }
 

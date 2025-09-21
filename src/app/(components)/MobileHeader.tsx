@@ -6,6 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { Home, List, Plus } from "lucide-react";
 import Image from "next/image";
+import AuthDialog from "./AuthDialog";
 
 export default function MobileHeader() {
   const { open, setOpen } = useSidebar();
@@ -13,6 +14,7 @@ export default function MobileHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userMaps, setUserMaps] = useState<Array<{ id: string; name: string; icon?: string | null }>>([]);
   const [sharedMaps, setSharedMaps] = useState<Array<{ id: string; name: string; icon?: string | null }>>([]);
+  const [authOpen, setAuthOpen] = useState(false);
 
   function openMenu() {
     setIsMenuOpen(true);
@@ -250,20 +252,24 @@ export default function MobileHeader() {
                 </div>
               ) : (
                 <div className="p-4 border-t">
-                  <Link
-                    href="/api/auth/signin"
-                    onClick={closeMenu}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMenu();
+                      setAuthOpen(true);
+                    }}
                     className="w-full flex items-center justify-center gap-2 p-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                   >
                     <User className="w-4 h-4" />
                     <span>Se connecter</span>
-                  </Link>
+                  </button>
                 </div>
               )}
             </div>
           </div>
         </div>
       )}
+      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
     </div>
   );
 }

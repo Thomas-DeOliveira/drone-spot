@@ -1,15 +1,45 @@
 services:
   db:
     image: postgres:16
-    container_name: drone-spot-db
-    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
       POSTGRES_DB: drone_spot
-    ports:
-      - "5432:5432"
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d drone_spot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    image: ghcr.io/thomasdeoliveira/drone-spot:preprod
+    pull_policy: always
+    env_file: .env.production
+    depends_on:
+      db:
+        condition: service_healthy
+    # Pour appliquer le schéma sans migrations (préprod). Si tu as des migrations, remplace par 'prisma migrate deploy'.
+    command: sh -c "npx prisma db push --schema=prisma/schema.prisma"
+    environment:
+      # Force l'hôte Postgres interne du compose (évite localhost dans les conteneurs)
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/drone_spot?schema=public
+    restart: "no"
+
+  app:
+    image: ghcr.io/thomasdeoliveira/drone-spot:preprod
+    pull_policy: always
+    env_file: .env.production
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "3000:3000" # ou expose derrière un reverse proxy
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/drone_spot?schema=public
+    restart: unless-stopped
+    # optionnel si tu as un reverse proxy: labels Traefik/Caddy/Nginx etc.
+
 volumes:
-  db-data:
+  db_data:

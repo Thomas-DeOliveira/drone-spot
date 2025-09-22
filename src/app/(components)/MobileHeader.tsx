@@ -7,11 +7,13 @@ import Link from "next/link";
 import { Home, List, Plus } from "lucide-react";
 import Image from "next/image";
 import AuthDialog from "./AuthDialog";
+import { useTheme } from "next-themes";
 import ModeToggle from "./ModeToggle";
 
 export default function MobileHeader() {
   const { open, setOpen } = useSidebar();
   const { data: session } = useSession();
+  const { resolvedTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userMaps, setUserMaps] = useState<Array<{ id: string; name: string; icon?: string | null }>>([]);
   const [sharedMaps, setSharedMaps] = useState<Array<{ id: string; name: string; icon?: string | null }>>([]);
@@ -82,10 +84,14 @@ export default function MobileHeader() {
         <Link href="/" className="inline-flex items-center group">
           <span className="relative inline-flex h-12 w-12 lg:h-16 lg:w-16 items-center justify-center rounded-xl transition-transform group-hover:scale-105">
             <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 rounded-full bg-primary/30 opacity-30 blur-md scale-125" />
-            {/* Clair */}
-            <Image src="/dronespot.svg" alt="DroneSpot" width={36} height={36} className="h-9 w-9 lg:h-12 lg:w-12 drop-shadow-[0_4px_10px_rgba(0,0,0,0.15)] dark:hidden" priority />
-            {/* Sombre */}
-            <Image src="/dronespot-white.svg" alt="DroneSpot" width={36} height={36} className="hidden dark:block h-9 w-9 lg:h-12 lg:w-12 drop-shadow-[0_4px_10px_rgba(0,0,0,0.15)]" priority />
+            <Image
+              src={resolvedTheme === "dark" ? "/dronespot-white.svg" : "/dronespot.svg"}
+              alt="DroneSpot"
+              width={36}
+              height={36}
+              className="h-9 w-9 lg:h-12 lg:w-12 drop-shadow-[0_4px_10px_rgba(0,0,0,0.15)]"
+              priority
+            />
           </span>
           <span className="text-lg font-semibold tracking-tight text-foreground">
             DroneSpot

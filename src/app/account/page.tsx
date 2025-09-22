@@ -42,8 +42,8 @@ export default function AccountPage() {
 
   const handleAvatarChange = async (avatarUrl: string) => {
     setCurrentAvatar(avatarUrl);
-    // Mettre à jour la session pour refléter le changement
-    await update();
+    // Mettre à jour la session pour refléter le changement immédiatement côté client
+    await update({ image: avatarUrl } as any);
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {

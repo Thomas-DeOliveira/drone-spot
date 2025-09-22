@@ -77,7 +77,7 @@ export default async function NewSpotPage({ searchParams }: { searchParams: Prom
     "use server";
     const sessionInner = await getServerSession(authOptions);
     if (!sessionInner?.user?.id) {
-      throw new Error("Authentication required");
+      return { error: "Authentification requise" };
     }
     const title = String(formData.get("title") || "").trim();
     const description = String(formData.get("description") || "").trim();
@@ -97,7 +97,7 @@ export default async function NewSpotPage({ searchParams }: { searchParams: Prom
     const mapsChecked = (formData.getAll("maps") as string[]).filter(Boolean);
     const selected = String(formData.get("tags") || "").split(",").map((v) => v.trim()).filter(Boolean);
     if (!title || !description || selected.length === 0 || validImages.length === 0 || Number.isNaN(latitude) || Number.isNaN(longitude)) {
-      throw new Error("Titre, description, au moins un tag et une image (format image) sont requis");
+      return { error: "Titre, description, au moins un tag, une image, latitude et longitude sont requis." };
     }
 
     // Si la création vise une carte, vérifier droit WRITE (propriétaire ou partagé en écriture)
@@ -105,7 +105,7 @@ export default async function NewSpotPage({ searchParams }: { searchParams: Prom
     if (targetMapIds.length > 0) {
       const checkId = targetMapIds[0];
       const map = await prisma.map.findUnique({ where: { id: checkId }, select: { userId: true } });
-      if (!map) throw new Error("Carte introuvable");
+      if (!map) return { error: "Carte introuvable" };
       const isOwner = map.userId === (sessionInner.user.id as string);
       let canWrite = isOwner;
       if (!canWrite) {
@@ -121,7 +121,7 @@ export default async function NewSpotPage({ searchParams }: { searchParams: Prom
         });
         canWrite = Boolean(share);
       }
-      if (!canWrite) throw new Error("Droit insuffisant pour ajouter un spot dans cette carte");
+      if (!canWrite) return { error: "Droit insuffisant pour ajouter un spot dans cette carte" };
     }
     const created = await prisma.spot.create({
       data: {

@@ -130,7 +130,7 @@ export default async function SpotDetailPage({ params }: Props) {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {spot.images.map((img, idx) => (
                   <div key={idx} className="relative w-full aspect-[4/3] rounded-md overflow-hidden border">
-                    <Image src={img.url} alt={`${spot.title} ${idx + 1}`} fill className="object-cover" sizes="25vw" />
+                    <Image src={img.url} alt={`${spot.title} ${idx + 1}`} fill className="object-cover" sizes="25vw" unoptimized />
                   </div>
                 ))}
               </div>

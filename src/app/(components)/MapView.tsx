@@ -6,7 +6,7 @@ import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Minus, LocateFixed, Filter, ChevronDown, Check, X, MapPin, Layers, Shield } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useAuthErrorHandler } from "./hooks/useAuthError";
 
@@ -116,12 +116,13 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
   const [isDarkMode, setIsDarkMode] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { showAuthDialog } = useAuthErrorHandler();
   const [manualOpen, setManualOpen] = useState(false);
   const [manualLat, setManualLat] = useState<string>("");
   const [manualLng, setManualLng] = useState<string>("");
   const [manualError, setManualError] = useState<string>("");
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     // Set a cohesive default themed icon for all markers
@@ -137,6 +138,20 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
   }, []);
+
+  // Démarrer le mode placement si le paramètre d'URL place=1 est présent
+  useEffect(() => {
+    const place = searchParams?.get("place");
+    if (place === "1") {
+      if (!canCreate) return;
+      if (status === "loading") return; // attendre la session
+      if (status !== "authenticated") {
+        showAuthDialog();
+        return;
+      }
+      setIsPlacementMode(true);
+    }
+  }, [searchParams, status, canCreate, showAuthDialog]);
 
   const center = useMemo(() => {
     // Position de base: France (Paris). On ne dépend plus du premier spot.
@@ -262,7 +277,8 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
   useEffect(() => {
     function onStartPlacement(e: any) {
       if (!canCreate) return;
-      if (!session?.user) {
+      if (status === "loading") return; // attendre la session
+      if (status !== "authenticated") {
         showAuthDialog();
         return;
       }
@@ -270,7 +286,7 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
     }
     window.addEventListener("start-spot-placement", onStartPlacement as any);
     return () => window.removeEventListener("start-spot-placement", onStartPlacement as any);
-  }, [canCreate, session?.user, showAuthDialog]);
+  }, [canCreate, status, showAuthDialog]);
 
   // Échapper pour annuler
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Image from "next/image";
+import LogoBrand from "../(components)/LogoBrand";
 import { Map, Layers, Share2, Shield, Image as ImageIcon, Users, Lock, Globe, Sparkles, Plus, Star } from "lucide-react";
 import ModeToggle from "../(components)/ModeToggle";
 
@@ -29,10 +30,8 @@ export default function AboutPage() {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent pointer-events-none" />
         <div className="max-w-5xl mx-auto px-4 py-12 md:py-16">
-          <div className="inline-flex items-center gap-3 group">
-            <span className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-primary/40 to-sky-200/60 p-3 shadow-[0_4px_18px_rgba(0,0,0,0.06)] ring-1 ring-primary/30 transition-transform group-hover:scale-105">
-              <Image src="/dronespot.svg" alt="DroneSpot" width={40} height={40} className="h-10 w-10" />
-            </span>
+          <div className="inline-flex items-center gap-3">
+            <LogoBrand size={56} className="h-14 w-14" />
             <span className="text-2xl md:text-3xl font-semibold tracking-tight">DroneSpot</span>
           </div>
           <h1 className="mt-3 text-3xl md:text-5xl font-semibold tracking-tight leading-tight bg-gradient-to-br from-primary to-sky-600 dark:to-sky-400 bg-clip-text text-transparent">

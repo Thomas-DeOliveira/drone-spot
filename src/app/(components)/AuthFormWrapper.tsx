@@ -3,7 +3,7 @@ import { useAuthErrorHandler } from "./hooks/useAuthError";
 import { useTransition, useState } from "react";
 
 interface AuthFormWrapperProps {
-  action: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => Promise<any>;
   children: React.ReactNode;
   className?: string;
 }
@@ -20,7 +20,19 @@ export default function AuthFormWrapper({ action, children, className }: AuthFor
     setErrorMessage("");
     startTransition(async () => {
       try {
-        await action(formData);
+        const result = await action(formData);
+        if (result && typeof result === "object") {
+          if (result.error && typeof result.error === "string") {
+            setErrorMessage(result.error);
+            return;
+          }
+          if (result.redirectTo && typeof result.redirectTo === "string") {
+            if (typeof window !== "undefined") {
+              window.location.href = result.redirectTo;
+              return;
+            }
+          }
+        }
       } catch (error: any) {
         if (!handleAuthError(error)) {
           const msg = error?.message || "Une erreur est survenue. Merci de réessayer.";

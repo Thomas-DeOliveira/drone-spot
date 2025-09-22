@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Home, List, Plus } from "lucide-react";
 import Image from "next/image";
 import AuthDialog from "./AuthDialog";
+import ModeToggle from "./ModeToggle";
 
 export default function MobileHeader() {
   const { open, setOpen } = useSidebar();
@@ -70,7 +71,7 @@ export default function MobileHeader() {
   return (
     <div className="lg:hidden">
       {/* Header mobile */}
-      <div className="flex items-center justify-between p-4 border-b bg-background">
+      <div className="flex items-center justify-between px-3 py-2 md:px-4 md:py-3 border-b bg-background">
         <button
           onClick={openMenu}
           className="p-2 rounded-md hover:bg-accent transition-colors"
@@ -78,11 +79,17 @@ export default function MobileHeader() {
           <Menu className="w-5 h-5" />
         </button>
 
-        <Link href="/" className="inline-flex items-center gap-2 group">
-          <span className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-primary/40 to-primary/20 p-2 shadow-[0_4px_18px_rgba(0,0,0,0.06)] ring-1 ring-primary/30 transition-transform group-hover:scale-105">
-            <Image src="/dronespot.svg" alt="DroneSpot" width={20} height={20} className="h-5 w-5" priority />
+        <Link href="/" className="inline-flex items-center group">
+          <span className="relative inline-flex h-12 w-12 lg:h-16 lg:w-16 items-center justify-center rounded-xl transition-transform group-hover:scale-105">
+            <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 rounded-full bg-primary/30 opacity-30 blur-md scale-125" />
+            {/* Clair */}
+            <Image src="/dronespot.svg" alt="DroneSpot" width={36} height={36} className="h-9 w-9 lg:h-12 lg:w-12 drop-shadow-[0_4px_10px_rgba(0,0,0,0.15)] dark:hidden" priority />
+            {/* Sombre */}
+            <Image src="/dronespot-white.svg" alt="DroneSpot" width={36} height={36} className="hidden dark:block h-9 w-9 lg:h-12 lg:w-12 drop-shadow-[0_4px_10px_rgba(0,0,0,0.15)]" priority />
           </span>
-          <span className="text-base font-semibold tracking-tight">DroneSpot</span>
+          <span className="text-lg font-semibold tracking-tight text-foreground">
+            DroneSpot
+          </span>
         </Link>
 
         <div className="w-9 h-9" /> {/* Spacer pour centrer le titre */}
@@ -91,18 +98,25 @@ export default function MobileHeader() {
       {/* Menu mobile overlay */}
       {isMenuOpen && (
         <div className="fixed inset-0 z-50 bg-black/50" onClick={closeMenu}>
-          <div className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-background border-l shadow-lg" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed top-0 right-0 w-80 max-w-[85vw] bg-background border-l shadow-lg h-[100dvh] overflow-y-auto"
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="text-lg font-semibold">Menu</h2>
-              <button
-                onClick={closeMenu}
-                className="p-2 rounded-md hover:bg-accent transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <ModeToggle />
+                <button
+                  onClick={closeMenu}
+                  className="p-2 rounded-md hover:bg-accent transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
             
-            <div className="h-full overflow-y-auto">
+            <div>
               {/* Navigation principale */}
               <nav className="p-4 space-y-2">
                 <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
@@ -129,7 +143,18 @@ export default function MobileHeader() {
                         type="button"
                         onClick={() => {
                           closeMenu();
-                          // Déclenche le mode placement sur la carte
+                          // Si on est sur une carte perso, rester sur cette carte et activer place=1
+                          const m = location.pathname.match(/^\/maps\/([^\/\?]+)/);
+                          if (m && m[1]) {
+                            location.href = `/maps/${m[1]}?place=1&view=map`;
+                            return;
+                          }
+                          // Depuis une autre vue, on va sur la carte générale avec place=1
+                          if (location.pathname !== "/") {
+                            location.href = "/?place=1";
+                            return;
+                          }
+                          // Déjà sur la carte: déclenche le mode placement
                           window.dispatchEvent(new CustomEvent("start-spot-placement"));
                         }}
                         className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-left"

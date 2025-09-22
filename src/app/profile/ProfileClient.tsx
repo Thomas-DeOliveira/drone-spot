@@ -33,8 +33,8 @@ export default function ProfileClient({ user, averageRating }: ProfileClientProp
 
   const handleAvatarChange = async (avatarUrl: string) => {
     setCurrentAvatar(avatarUrl);
-    // Mettre à jour la session pour refléter le changement
-    await update();
+    // Mettre à jour la session pour refléter le changement immédiatement côté client
+    await update({ image: avatarUrl } as any);
   };
 
   const getInitials = (name: string) => {

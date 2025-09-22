@@ -2,6 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Home, List, Menu as MenuIcon, ChevronLeft, LogIn, Plus, Settings, User, Edit3, LogOut, Shield } from "lucide-react";
@@ -39,6 +40,7 @@ const baseItems = [
 const personalItems: any[] = [];
 
 export default function AppSidebar() {
+  const { resolvedTheme } = useTheme();
   const pathname = usePathname();
   const { data } = useSession();
   const user = data?.user;
@@ -107,11 +109,20 @@ export default function AppSidebar() {
       <SidebarHeader className="px-3 py-3">
         {open ? (
           <div className="flex items-center justify-between w-full">
-            <Link href="/" className="inline-flex items-center gap-2 group">
-              <span className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-primary/40 to-primary/20 p-2 shadow-[0_4px_18px_rgba(0,0,0,0.06)] ring-1 ring-primary/30 transition-transform group-hover:scale-105">
-                <Image src="/dronespot.svg" alt="DroneSpot" width={20} height={20} className="h-5 w-5" priority />
+            <Link href="/" className="inline-flex items-center group">
+              <span className="relative inline-flex h-14 w-14 lg:h-16 lg:w-16 items-center justify-center rounded-xl transition-transform group-hover:scale-105">
+                <Image
+                  src={resolvedTheme === "dark" ? "/dronespot-white.svg" : "/dronespot.svg"}
+                  alt="DroneSpot"
+                  width={48}
+                  height={48}
+                  className="h-10 w-10 lg:h-12 lg:w-12"
+                  priority
+                />
               </span>
-              <span className="text-base font-semibold tracking-tight text-foreground">DroneSpot</span>
+              <span className="text-base font-semibold tracking-tight text-foreground">
+                DroneSpot
+              </span>
             </Link>
             <button
               onClick={() => setOpen(false)}
@@ -252,6 +263,16 @@ export default function AppSidebar() {
               <button
                 type="button"
                 onClick={() => {
+                  const m = location.pathname.match(/^\/maps\/([^\/\?]+)/);
+                  if (m && m[1]) {
+                    // Rester sur la carte perso et activer le placement
+                    location.href = `/maps/${m[1]}?place=1&view=map`;
+                    return;
+                  }
+                  if (location.pathname !== "/") {
+                    location.href = "/?place=1";
+                    return;
+                  }
                   window.dispatchEvent(new CustomEvent("start-spot-placement"));
                 }}
                 className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 gap-2"
@@ -277,6 +298,15 @@ export default function AppSidebar() {
                     <button
                       type="button"
                       onClick={() => {
+                        const m = location.pathname.match(/^\/maps\/([^\/\?]+)/);
+                        if (m && m[1]) {
+                          location.href = `/maps/${m[1]}?place=1&view=map`;
+                          return;
+                        }
+                        if (location.pathname !== "/") {
+                          location.href = "/?place=1";
+                          return;
+                        }
                         // Démarre le mode placement sur la carte via un événement global
                         window.dispatchEvent(new CustomEvent("start-spot-placement"));
                       }}

@@ -40,7 +40,7 @@ export default function SpotGallery({ title, images }: SpotGalleryProps) {
         className="relative w-full h-72 lg:h-96 rounded-xl overflow-hidden border focus:outline-none focus:ring-2 focus:ring-ring"
         aria-label="Agrandir l'image"
       >
-        <Image src={main} alt={title} fill className="object-cover" sizes="100vw" priority />
+        <Image src={main} alt={title} fill className="object-cover" sizes="100vw" priority unoptimized />
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/0 to-black/0" />
       </button>
 
@@ -84,6 +84,7 @@ export default function SpotGallery({ title, images }: SpotGalleryProps) {
               className="object-contain"
               sizes="90vw"
               priority
+              unoptimized
             />
           </div>
         </div>

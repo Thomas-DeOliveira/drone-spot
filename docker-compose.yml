@@ -39,7 +39,11 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/drone_spot?schema=public
     restart: unless-stopped
+    volumes:
+      # Persiste les fichiers uploadés par les utilisateurs
+      - app_uploads:/app/public/uploads
     # optionnel si tu as un reverse proxy: labels Traefik/Caddy/Nginx etc.
 
 volumes:
   db_data:
+  app_uploads:

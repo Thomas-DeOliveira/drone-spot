@@ -76,18 +76,36 @@ export const authOptions: NextAuthOptions = {
   providers,
   theme: { colorScheme: "auto" },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         (token as any).id = (user as any).id;
         // inclure le rôle en JWT
         const dbUser = await prisma.user.findUnique({ where: { id: (user as any).id as string }, select: { role: true } });
         if (dbUser) (token as any).role = dbUser.role;
+        // lors du login, synchroniser l'image si fournie
+        if ((user as any)?.image) {
+          (token as any).picture = (user as any).image as string;
+        } else if ((token as any).id) {
+          const img = await prisma.user.findUnique({ where: { id: (token as any).id as string }, select: { image: true } });
+          if (img?.image != null) (token as any).picture = img.image;
+        }
       } else if (token?.email && !(token as any).id) {
         const dbUser = await prisma.user.findUnique({ where: { email: token.email as string } });
         if (dbUser) {
           (token as any).id = dbUser.id;
           (token as any).role = dbUser.role;
+          if (dbUser.image != null) (token as any).picture = dbUser.image;
         }
+      }
+      // Mise à jour manuelle du profil (via useSession().update)
+      if (trigger === "update" && session) {
+        // next-auth transmet les champs top-level: name, email, image
+        const s: any = session;
+        if (typeof s.image === "string") {
+          (token as any).picture = s.image;
+        }
+        if (typeof s.name === "string") token.name = s.name;
+        if (typeof s.email === "string") token.email = s.email;
       }
       return token;
     },
@@ -95,6 +113,11 @@ export const authOptions: NextAuthOptions = {
       if (session.user && (token as any).id) {
         (session.user as any).id = (token as any).id as string;
         (session.user as any).role = (token as any).role as string | undefined;
+      }
+      // Propager l'image depuis le token (picture) si disponible
+      if (session.user) {
+        const picture = (token as any).picture as string | undefined;
+        if (typeof picture === "string") session.user.image = picture;
       }
       return session;
     },

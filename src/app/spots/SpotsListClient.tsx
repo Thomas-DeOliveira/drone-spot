@@ -168,7 +168,7 @@ export default function SpotsListClient({ spots, tags, showMapBadges = false, sh
             >
               <div className="relative h-40 w-full bg-muted">
                 {s.images?.[0]?.url ? (
-                  <Image src={s.images[0].url} alt={s.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
+                  <Image src={s.images[0].url} alt={s.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" unoptimized />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">Aucune image</div>
                 )}

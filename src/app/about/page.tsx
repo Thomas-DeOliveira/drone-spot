@@ -2,13 +2,13 @@ import { Metadata } from "next";
 import Image from "next/image";
 import LogoBrand from "../(components)/LogoBrand";
 import { Map, Layers, Share2, Shield, Image as ImageIcon, Users, Lock, Globe, Sparkles, Plus, Star } from "lucide-react";
-import ModeToggle from "../(components)/ModeToggle";
+import ForceLightTheme from "../(components)/providers/ForceLightTheme";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "DroneSpot – À propos",
-  description: "Présentation des fonctionnalités de DroneSpot: cartes perso, partage, zones drones, clustering, mobile, et plus.",
+  title: "FlySpot – À propos",
+  description: "Présentation des fonctionnalités de FlySpot: cartes perso, partage, zones drones, clustering, mobile, et plus.",
 };
 
 export default function AboutPage() {
@@ -26,13 +26,14 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen w-full bg-background">
+      <ForceLightTheme />
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent pointer-events-none" />
         <div className="max-w-5xl mx-auto px-4 py-12 md:py-16">
           <div className="inline-flex items-center gap-3">
             <LogoBrand size={56} className="h-14 w-14" />
-            <span className="text-2xl md:text-3xl font-semibold tracking-tight">DroneSpot</span>
+            <span className="text-2xl md:text-3xl font-semibold tracking-tight">FlySpot</span>
           </div>
           <h1 className="mt-3 text-3xl md:text-5xl font-semibold tracking-tight leading-tight bg-gradient-to-br from-primary to-sky-600 dark:to-sky-400 bg-clip-text text-transparent">
             Découvrez et partagez vos meilleurs spots de drone
@@ -47,7 +48,7 @@ export default function AboutPage() {
             >
               <Map className="w-4 h-4" /> Ouvrir la carte
             </a>
-            <ModeToggle />
+            {/* Pas de bascule de thème sur /about */}
           </div>
         </div>
       </section>

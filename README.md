@@ -1,4 +1,4 @@
-# Drone Spots (Next.js 14, App Router)
+# FlySpot (Next.js 14, App Router)
 
 Application simple pour afficher une carte plein écran avec des spots de drone et permettre aux utilisateurs authentifiés d'ajouter de nouveaux spots.
 

@@ -20,7 +20,7 @@ function getClient(): Resend {
 }
 
 export async function sendEmail({ to, subject, html, text }: SendEmailParams): Promise<void> {
-  const from = process.env.EMAIL_FROM || "DroneSpot <no-reply@drone-spot.app>";
+  const from = process.env.EMAIL_FROM || "FlySpot <no-reply@fly-spot.app>";
   if (!from) throw new Error("EMAIL_FROM manquant. Ajoutez-le à votre .env");
 
   const client = getClient();

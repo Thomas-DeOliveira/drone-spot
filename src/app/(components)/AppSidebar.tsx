@@ -2,7 +2,6 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Home, List, Menu as MenuIcon, ChevronLeft, LogIn, Plus, Settings, User, Edit3, LogOut, Shield } from "lucide-react";
@@ -40,7 +39,6 @@ const baseItems = [
 const personalItems: any[] = [];
 
 export default function AppSidebar() {
-  const { resolvedTheme } = useTheme();
   const pathname = usePathname();
   const { data } = useSession();
   const user = data?.user;
@@ -111,17 +109,31 @@ export default function AppSidebar() {
           <div className="flex items-center justify-between w-full">
             <Link href="/" className="inline-flex items-center group">
               <span className="relative inline-flex h-14 w-14 lg:h-16 lg:w-16 items-center justify-center rounded-xl transition-transform group-hover:scale-105">
-                <Image
-                  src={resolvedTheme === "dark" ? "/dronespot-white.svg" : "/dronespot.svg"}
-                  alt="DroneSpot"
-                  width={48}
-                  height={48}
-                  className="h-10 w-10 lg:h-12 lg:w-12"
-                  priority
-                />
+                <>
+                  <span className="ds-logo-light block">
+                    <Image
+                      src="/dronespot.svg"
+                      alt="DroneSpot"
+                      width={48}
+                      height={48}
+                      className="h-10 w-10 lg:h-12 lg:w-12"
+                      priority
+                    />
+                  </span>
+                  <span className="ds-logo-dark block">
+                    <Image
+                      src="/dronespot-white.svg"
+                      alt="DroneSpot"
+                      width={48}
+                      height={48}
+                      className="h-10 w-10 lg:h-12 lg:w-12"
+                      priority
+                    />
+                  </span>
+                </>
               </span>
               <span className="text-base font-semibold tracking-tight text-foreground">
-                DroneSpot
+                FlySpot
               </span>
             </Link>
             <button

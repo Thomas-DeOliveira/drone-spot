@@ -109,9 +109,9 @@ export default async function MapsListPage() {
       const link = `${baseUrl}/maps/${mapId}`;
       await sendEmail({
         to: email,
-        subject: "Une carte vous a été partagée sur DroneSpot",
-        html: `<p>Bonjour,</p><p>Une carte vous a été partagée sur DroneSpot.</p><p><a href="${link}">Ouvrir la carte</a></p>`,
-        text: `Une carte vous a été partagée sur DroneSpot. Ouvrir: ${link}`,
+        subject: "Une carte vous a été partagée sur FlySpot",
+        html: `<p>Bonjour,</p><p>Une carte vous a été partagée sur FlySpot.</p><p><a href="${link}">Ouvrir la carte</a></p>`,
+        text: `Une carte vous a été partagée sur FlySpot. Ouvrir: ${link}`,
       });
     } catch {}
     redirect("/maps?updated=1");

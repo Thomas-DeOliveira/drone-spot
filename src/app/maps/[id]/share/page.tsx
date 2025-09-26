@@ -35,8 +35,8 @@ export default async function ShareMapPage({ params }: { params: Promise<{ id: s
       const link = `${baseUrl}/maps/${mapId}`;
       await sendEmail({
         to: email,
-        subject: `Partage de la carte "${m.name}" sur DroneSpot`,
-        html: `<p>Bonjour,</p><p>La carte <strong>${m.name}</strong> vous a été partagée sur DroneSpot.</p><p>Accès: ${role === "WRITE" ? "Modification" : "Lecture"}</p><p><a href="${link}">Ouvrir la carte</a></p>`,
+        subject: `Partage de la carte "${m.name}" sur FlySpot`,
+        html: `<p>Bonjour,</p><p>La carte <strong>${m.name}</strong> vous a été partagée sur FlySpot.</p><p>Accès: ${role === "WRITE" ? "Modification" : "Lecture"}</p><p><a href="${link}">Ouvrir la carte</a></p>`,
         text: `La carte ${m.name} vous a été partagée. Accès: ${role}. Ouvrir: ${link}`,
       });
     } catch {}

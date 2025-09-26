@@ -355,6 +355,7 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
       <MapContainer
         center={center}
         zoom={6}
+        maxZoom={22}
         style={{ height: "100%", width: "100%" }}
         className={`h-full w-full [&>.leaflet-pane]:!z-0 ${isPlacementMode ? 'cursor-crosshair' : ''}`}
         scrollWheelZoom
@@ -376,6 +377,9 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maxNativeZoom={19}
+            maxZoom={22}
+            detectRetina={false}
           />
         )}
         <MapClickHandler onMapClick={handleMapClick} isPlacementMode={isPlacementMode} canCreate={canCreate} />
@@ -478,6 +482,10 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
           <TileLayer
             url={`https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${encodeURIComponent(process.env.NEXT_PUBLIC_IGN_DRONES_LAYER || "TRANSPORTS.DRONES.RESTRICTIONS")}&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}`}
             opacity={0.7}
+            maxNativeZoom={18}
+            maxZoom={22}
+            detectRetina={false}
+            zIndex={450}
           />
         )}
       </MapContainer>

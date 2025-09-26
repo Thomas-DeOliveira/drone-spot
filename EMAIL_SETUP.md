@@ -1,4 +1,4 @@
-# Configuration Email pour Drone Spot
+# Configuration Email pour FlySpot
 
 ## 🚀 Mode Développement (par défaut)
 
@@ -17,7 +17,7 @@ EMAIL_SERVER_HOST="smtp.gmail.com"
 EMAIL_SERVER_PORT="587"
 EMAIL_SERVER_USER="your-email@gmail.com"
 EMAIL_SERVER_PASSWORD="your-app-password"
-EMAIL_FROM="noreply@drone-spot.com"
+EMAIL_FROM="noreply@fly-spot.com"
 ```
 
 ## Configuration avec différents providers
@@ -32,7 +32,7 @@ EMAIL_SERVER_HOST="smtp.gmail.com"
 EMAIL_SERVER_PORT="587"
 EMAIL_SERVER_USER="your-email@gmail.com"
 EMAIL_SERVER_PASSWORD="your-16-char-app-password"
-EMAIL_FROM="noreply@drone-spot.com"
+EMAIL_FROM="noreply@fly-spot.com"
 ```
 
 ### SendGrid (recommandé pour la production)
@@ -45,7 +45,7 @@ EMAIL_SERVER_HOST="smtp.sendgrid.net"
 EMAIL_SERVER_PORT="587"
 EMAIL_SERVER_USER="apikey"
 EMAIL_SERVER_PASSWORD="your-sendgrid-api-key"
-EMAIL_FROM="noreply@drone-spot.com"
+EMAIL_FROM="noreply@fly-spot.com"
 ```
 
 ### Resend (moderne et simple)

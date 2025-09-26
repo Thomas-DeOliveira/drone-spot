@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Forcer le variant dark à dépendre de la classe .dark (et non du media query) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Contrôle explicite des logos (indépendant des media queries système) */
+@layer base {
+  html.dark .ds-logo-light { display: none !important; }
+  html:not(.dark) .ds-logo-dark { display: none !important; }
+}
+
 /* shadcn default theme variables (HSL) */
 @layer base {
   /* Styles pour les popups Leaflet */

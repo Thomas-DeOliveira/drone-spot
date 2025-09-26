@@ -6,7 +6,7 @@ export async function sendVerificationEmail(email: string, token: string) {
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #333;">Bienvenue sur Drone Spot !</h2>
+      <h2 style="color: #333;">Bienvenue sur FlySpot !</h2>
       <p>Merci de vous être inscrit. Pour activer votre compte, veuillez cliquer sur le lien ci-dessous :</p>
       <div style="text-align: center; margin: 30px 0;">
         <a href="${verificationUrl}" 
@@ -26,7 +26,7 @@ export async function sendVerificationEmail(email: string, token: string) {
 
   await sendEmail({
     to: email,
-    subject: "Vérifiez votre adresse email - Drone Spot",
+    subject: "Vérifiez votre adresse email - FlySpot",
     html,
     text: `Vérifiez votre adresse email: ${verificationUrl}`,
   });
@@ -58,7 +58,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
 
   await sendEmail({
     to: email,
-    subject: "Réinitialisation de votre mot de passe - Drone Spot",
+    subject: "Réinitialisation de votre mot de passe - FlySpot",
     html,
     text: `Réinitialisez votre mot de passe: ${resetUrl}`,
   });

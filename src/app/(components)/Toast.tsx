@@ -13,7 +13,7 @@ export function useSimpleToast() {
     setTimeout(() => setMessages((m) => m.filter((x) => x.id !== id)), 2500);
   }, []);
   const ToastHost = React.useCallback(() => (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[5000] space-y-2">
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[5000] space-y-2">
       {messages.map((m) => (
         <div key={m.id} className="px-3 py-2 rounded-md bg-foreground text-background text-sm shadow">
           {m.text}

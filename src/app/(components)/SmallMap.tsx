@@ -22,8 +22,11 @@ const defaultIcon = new L.Icon({
 
 const spotIcon = L.divIcon({
   className: "",
-  html:
-    '<div style="background:#0b0b0b;width:28px;height:28px;border-radius:9999px;display:block;border:2px solid rgba(255,255,255,0.85);box-shadow:0 6px 16px rgba(0,0,0,0.25)"></div>',
+  html: `
+    <span class="map-marker" style="width:28px;height:28px;">
+      <span class="map-marker-dot"></span>
+    </span>
+  `,
   iconSize: [28, 28],
   iconAnchor: [14, 28],
 });

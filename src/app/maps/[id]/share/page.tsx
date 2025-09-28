@@ -73,7 +73,7 @@ export default async function ShareMapPage({ params }: { params: Promise<{ id: s
   const shares = await prisma.mapShare.findMany({ where: { mapId: map.id }, select: { invitedEmail: true, role: true }, orderBy: { createdAt: "desc" } });
 
   return (
-    <div className="max-w-2xl mx-auto p-4 md:p-6 space-y-6">
+    <div className="max-w-2xl mx-auto p-4 pb-24 md:p-6 md:pb-6 space-y-6">
       <div className="space-y-1">
         <h1 className="text-xl md:text-2xl font-semibold">Partager la carte</h1>
         <p className="text-sm text-muted-foreground">Ajouter des personnes et définir leurs droits.</p>

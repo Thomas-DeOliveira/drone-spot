@@ -86,7 +86,7 @@ export default async function UserMapPage({ params }: { params: Promise<{ id: st
   const view = url.searchParams.get("view") === "list" ? "list" : "map";
 
   return (
-    <div className="h-screen w-full flex flex-col overflow-hidden">
+    <div className="h-full w-full flex flex-col overflow-hidden">
       <div className="p-3 md:p-4 border-b shrink-0 flex items-end justify-between gap-3">
         <div>
           <h1 className="text-lg md:text-xl font-semibold">{map.name}</h1>
@@ -104,7 +104,9 @@ export default async function UserMapPage({ params }: { params: Promise<{ id: st
             <SpotsListClient spots={spots as any} tags={tags} showTitle={false} />
           </div>
         ) : (
-          <MapViewClient spots={spots as any} tags={tags} currentMapId={map.id} canCreate={canCreate} />
+          <div className="h-full w-full overflow-hidden">
+            <MapViewClient spots={spots as any} tags={tags} currentMapId={map.id} canCreate={canCreate} />
+          </div>
         )}
       </div>
     </div>

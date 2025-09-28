@@ -103,7 +103,7 @@ export default async function SpotDetailPage({ params }: Props) {
   }
 
   return (
-    <div className="p-3 md:p-4 max-w-5xl mx-auto space-y-4 md:space-y-6">
+    <div className="p-3 pb-24 md:p-4 md:pb-6 max-w-5xl mx-auto space-y-4 md:space-y-6">
       <div className="flex items-center justify-between">
         <BackLink className="text-sm underline hover:text-primary" fallbackHref="/spots">← Retour en arrière</BackLink>
       </div>

@@ -42,9 +42,9 @@ export default async function RootLayout({
               <SidebarProvider>
                 <div className="flex">
                   {!hideSidebar && <AppSidebar />}
-                  <main className="flex-1 h-dvh overflow-y-auto flex flex-col">
+                  <main className="flex-1 h-dvh overflow-y-hidden flex flex-col">
                   <MobileHeader />
-                  <div className="flex-1 min-h-0">{children}</div>
+                  <div className="flex-1 min-h-0 overflow-y-auto">{children}</div>
                 </main>
                 </div>
               </SidebarProvider>

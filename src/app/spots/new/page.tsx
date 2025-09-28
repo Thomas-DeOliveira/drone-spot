@@ -187,7 +187,7 @@ export default async function NewSpotPage({ searchParams }: { searchParams: Prom
         </div>
       }
     >
-      <div className="max-w-2xl mx-auto p-3 md:p-6 space-y-4 md:space-y-6">
+      <div className="max-w-2xl mx-auto p-3 pb-24 md:p-6 md:pb-6 space-y-4 md:space-y-6">
         <div className="space-y-1">
           <h1 className="text-xl md:text-2xl font-semibold tracking-tight">Ajouter un spot</h1>
           <p className="text-sm text-muted-foreground">Renseignez les informations du spot pour le partager avec la communauté.</p>

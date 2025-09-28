@@ -120,7 +120,7 @@ export default async function EditMapPage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="max-w-xl mx-auto p-4 md:p-6 space-y-4">
+    <div className="max-w-xl mx-auto p-4 pb-24 md:p-6 md:pb-6 space-y-4">
       <div className="space-y-1">
         <h1 className="text-xl md:text-2xl font-semibold">Modifier la carte</h1>
         <p className="text-sm text-muted-foreground">Changez le nom et l’emoji d’affichage.</p>

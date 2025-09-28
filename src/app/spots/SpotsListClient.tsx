@@ -103,7 +103,7 @@ export default function SpotsListClient({ spots, tags, showMapBadges = false, sh
   };
 
   return (
-    <div className="p-3 md:p-6">
+    <div className="p-3 pb-24 md:p-6 md:pb-6">
       {showTitle && (
         <h1 className="text-xl md:text-2xl font-semibold tracking-tight mb-4 md:mb-5">Liste des spots</h1>
       )}

@@ -123,6 +123,10 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
   const [manualLng, setManualLng] = useState<string>("");
   const [manualError, setManualError] = useState<string>("");
   const searchParams = useSearchParams();
+  const [clusters, setClusters] = useState<any[]>([]);
+  const [clusterIndex, setClusterIndex] = useState<Supercluster<any, any> | null>(null);
+  const lastClustersRef = useRef<any[]>([]);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
 
   useEffect(() => {
     // Set a cohesive default themed icon for all markers
@@ -137,6 +141,16 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
     const observer = new MutationObserver(update);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
+  }, []);
+
+  // Détecter petit écran pour adapter la taille des popups
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 640px)');
+    const apply = () => setIsSmallScreen(mq.matches);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
   }, []);
 
   // Démarrer le mode placement si le paramètre d'URL place=1 est présent
@@ -161,8 +175,6 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
   const mapRef = useRef<L.Map | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
-  const [clusters, setClusters] = useState<any[]>([]);
-  const [clusterIndex, setClusterIndex] = useState<Supercluster<any, any> | null>(null);
 
   // Charger la préférence de style de carte
   useEffect(() => {
@@ -233,7 +245,20 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
     const zoom = Math.round(mapRef.current.getZoom());
     const bbox: [number, number, number, number] = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()];
     const cs = clusterIndex.getClusters(bbox, zoom);
-    setClusters(cs);
+    // Éviter des mises à jour inutiles qui peuvent boucler
+    const prev = lastClustersRef.current as any[];
+    let same = prev.length === cs.length;
+    if (same) {
+      for (let i = 0; i < cs.length; i++) {
+        const prevId = (prev[i] as any)?.id;
+        const nextId = (cs[i] as any)?.id;
+        if (prevId !== nextId) { same = false; break; }
+      }
+    }
+    if (!same) {
+      lastClustersRef.current = cs as any[];
+      setClusters(cs);
+    }
   };
 
   useEffect(() => {
@@ -244,6 +269,7 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
     map.on("moveend", handler);
     map.on("zoomend", handler);
     return () => {
+      if (!map) return;
       map.off("moveend", handler);
       map.off("zoomend", handler);
     };
@@ -357,14 +383,15 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
         zoom={6}
         maxZoom={22}
         style={{ height: "100%", width: "100%" }}
-        className={`h-full w-full [&>.leaflet-pane]:!z-0 ${isPlacementMode ? 'cursor-crosshair' : ''}`}
+        className={`h-full w-full touch-pan-y [&>.leaflet-pane]:!z-0 ${isPlacementMode ? 'cursor-crosshair' : ''}`}
         scrollWheelZoom
         zoomControl={false}
         attributionControl={false}
         ref={(map) => {
-          if (map) {
+          // Éviter les mises à jour en boucle: n'initialiser qu'une seule fois
+          if (!mapRef.current && map) {
             mapRef.current = map;
-            setMapReady(true);
+            if (!mapReady) setMapReady(true);
           }
         }}
       >
@@ -416,12 +443,12 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
             <Marker key={s.id} position={[s.latitude, s.longitude]} icon={createThemedMarkerIcon()}>
               <Popup 
                 className="custom-popup" 
-                maxWidth={280} 
-                minWidth={280}
+                maxWidth={isSmallScreen ? 176 : 280} 
+                minWidth={isSmallScreen ? 176 : 280}
               >
                 <div className="w-full">
                   {s.images?.[0]?.url ? (
-                    <div className="relative w-full h-32 rounded-t-lg overflow-hidden mb-3">
+                    <div className="relative w-full h-20 sm:h-32 rounded-t-lg overflow-hidden mb-3">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img 
                         src={s.images[0].url} 
@@ -431,31 +458,31 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                     </div>
                   ) : (
-                    <div className="w-full h-32 bg-gradient-to-br from-primary/10 to-primary/5 rounded-t-lg mb-3 flex items-center justify-center">
-                      <MapPin className="w-8 h-8 text-primary/60" />
+                    <div className="w-full h-20 sm:h-32 bg-gradient-to-br from-primary/10 to-primary/5 rounded-t-lg mb-3 flex items-center justify-center">
+                      <MapPin className="w-4 h-4 text-primary/60" />
                     </div>
                   )}
                   <div className="px-1 pb-2">
-                    <h3 className="font-semibold text-base text-foreground mb-2 line-clamp-2">
+                    <h3 className="font-semibold text-sm sm:text-base text-foreground mb-1 line-clamp-2">
                       {s.title}
                     </h3>
                     {s.description && (
-                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-2 line-clamp-2 leading-relaxed">
                         {s.description}
                       </p>
                     )}
                     {s.tags && s.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
+                      <div className="flex flex-wrap gap-1 mb-2">
                         {s.tags.slice(0, 3).map((tag) => (
                           <span
                             key={tag.id}
-                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20"
+                            className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20"
                           >
                             {tag.name}
                           </span>
                         ))}
                         {s.tags.length > 3 && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">
                             +{s.tags.length - 3}
                           </span>
                         )}
@@ -463,7 +490,7 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
                     )}
                     <Link
                       href={`/spots/${s.id}`}
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-all duration-200 bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md py-2.5 px-4"
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-lg text-[11px] sm:text-sm font-medium transition-all duration-200 bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md py-1.5 px-3"
                     >
                       <span>Voir le spot</span>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -491,62 +518,64 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
       </MapContainer>
 
       {/* Filtre par tag - top-left */}
-      <div className={`absolute left-2 top-2 lg:left-3 lg:top-3 z-[3000] ${isUiSuppressed ? "opacity-50 pointer-events-none" : ""}`}>
-        <div className="relative inline-block" ref={filterRef}>
-          <button
-            onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="flex items-center gap-1 lg:gap-2 px-2 py-1.5 lg:px-3 lg:py-2 bg-background border border-border rounded-lg shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors text-xs lg:text-sm"
-          >
-            <Filter className="w-4 h-4" />
-            <span className="hidden sm:inline">
-              {selectedTags.length === 0 
-                ? "Filtrer par tag" 
-                : `${selectedTags.length} tag${selectedTags.length > 1 ? 's' : ''}`
-              }
-            </span>
-            <ChevronDown className={`w-4 h-4 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
-          </button>
+      {!isUiSuppressed && (
+        <div className="absolute left-2 top-2 lg:left-3 lg:top-3 z-[3000]">
+          <div className="relative inline-block" ref={filterRef}>
+            <button
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className="flex items-center gap-1 lg:gap-2 px-2 py-1.5 lg:px-3 lg:py-2 bg-background border border-border rounded-lg shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors text-xs lg:text-sm"
+            >
+              <Filter className="w-4 h-4" />
+              <span className="hidden sm:inline">
+                {selectedTags.length === 0 
+                  ? "Filtrer par tag" 
+                  : `${selectedTags.length} tag${selectedTags.length > 1 ? 's' : ''}`
+                }
+              </span>
+              <ChevronDown className={`w-4 h-4 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
+            </button>
 
-          {/* Dropdown menu */}
-          {isFilterOpen && (
-            <div className="absolute top-full left-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto min-w-[200px] w-max">
-              {tags.length === 0 ? (
-                <div className="px-4 py-3 text-sm text-muted-foreground text-center">
-                  Aucun tag disponible
-                </div>
-              ) : (
-                <div className="py-1">
-                  {selectedTags.length > 0 && (
-                    <div className="px-3 py-2 border-b border-border">
-                      <button
-                        onClick={handleClearAll}
-                        className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-                      >
-                        <X className="w-3 h-3" />
-                        Effacer tout
-                      </button>
-                    </div>
-                  )}
-                  {tags.map(tag => (
-                    <button
-                      key={tag.id}
-                      onClick={() => handleTagToggle(tag.id)}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-                    >
-                      <div className="flex items-center justify-center w-4 h-4">
-                        {selectedTags.includes(tag.id) && (
-                          <Check className="w-4 h-4 text-primary" />
-                        )}
+            {/* Dropdown menu */}
+            {isFilterOpen && (
+              <div className="absolute top-full left-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto min-w-[200px] w-max">
+                {tags.length === 0 ? (
+                  <div className="px-4 py-3 text-sm text-muted-foreground text-center">
+                    Aucun tag disponible
+                  </div>
+                ) : (
+                  <div className="py-1">
+                    {selectedTags.length > 0 && (
+                      <div className="px-3 py-2 border-b border-border">
+                        <button
+                          onClick={handleClearAll}
+                          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                        >
+                          <X className="w-3 h-3" />
+                          Effacer tout
+                        </button>
                       </div>
-                      <span className="flex-1 text-left">{tag.name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                    )}
+                    {tags.map(tag => (
+                      <button
+                        key={tag.id}
+                        onClick={() => handleTagToggle(tag.id)}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                      >
+                        <div className="flex items-center justify-center w-4 h-4">
+                          {selectedTags.includes(tag.id) && (
+                            <Check className="w-4 h-4 text-primary" />
+                          )}
+                        </div>
+                        <span className="flex-1 text-left">{tag.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Controls top-right */}
       {!isUiSuppressed && (
@@ -606,18 +635,18 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
 
       {/* Bandeau d'aide en mode placement */}
       {isPlacementMode && !isUiSuppressed && (
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[4000]">
-          <div className="inline-flex items-center gap-2 px-3 py-2 md:px-4 rounded-lg bg-amber-500/95 text-black shadow-lg ring-1 ring-black/10">
-            <MapPin className="w-4 h-4" />
-            <span className="text-sm md:text-base font-semibold">Cliquez sur la carte pour choisir l’emplacement du spot</span>
+        <div className="absolute top-1 md:top-2 left-1/2 -translate-x-1/2 z-[4000]">
+          <div className="inline-flex items-center gap-1 md:gap-2 px-2 py-1 md:px-4 md:py-2 rounded-md md:rounded-lg bg-amber-500/95 text-black shadow-md md:shadow-lg ring-1 ring-black/10">
+            <MapPin className="w-3 h-3 md:w-4 md:h-4" />
+            <span className="text-[11px] md:text-base font-semibold">Cliquez sur la carte pour choisir l’emplacement du spot</span>
             <button
               type="button"
               onClick={() => setManualOpen(true)}
-              className="ml-2 inline-flex items-center rounded-md bg-black/80 text-white text-xs md:text-sm px-2.5 py-1 hover:bg-black"
+              className="ml-2 inline-flex items-center rounded-md bg-black/80 text-white text-[11px] md:text-sm px-2 py-0.5 md:px-2.5 md:py-1 hover:bg-black dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
             >
               Entrer des coordonnées
             </button>
-            <span className="hidden md:inline text-xs font-medium text-black/80">(Échap pour annuler)</span>
+            <span className="hidden md:inline text-xs font-medium text-black/80 dark:text-foreground/80">(Échap pour annuler)</span>
           </div>
         </div>
       )}

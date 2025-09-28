@@ -118,7 +118,7 @@ export default async function MapsListPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-3 md:p-6 space-y-6">
+    <div className="max-w-2xl mx-auto p-3 pb-24 md:p-6 md:pb-6 space-y-6">
       <ClientUpdatedPing />
       <div className="space-y-1">
         <h1 className="text-xl md:text-2xl font-semibold tracking-tight">Mes cartes</h1>

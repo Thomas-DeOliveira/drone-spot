@@ -60,7 +60,10 @@ export default function AuthDialog({ open, onOpenChange }: { open: boolean; onOp
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/40 z-[5000]" />
+        <Dialog.Overlay
+          className="fixed inset-0 bg-black/40 z-[5000]"
+          onClick={() => onOpenChange(false)}
+        />
         <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm rounded-lg border bg-card text-card-foreground p-4 shadow-lg z-[5001]">
           <Dialog.Title className="text-base font-medium mb-2">Bienvenue</Dialog.Title>
           <Tabs.Root value={activeTab} onValueChange={(v) => { setActiveTab(v as any); setLoginError(""); setRegisterError(""); }}>

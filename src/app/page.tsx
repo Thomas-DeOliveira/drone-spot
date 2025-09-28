@@ -26,7 +26,7 @@ export default async function Home() {
   ]);
 
   return (
-    <div className="w-full h-full overflow-hidden">
+    <div className="w-full h-full overflow-hidden touch-pan-y">
       <MapViewClient spots={spots as any} tags={tags} />
     </div>
   );

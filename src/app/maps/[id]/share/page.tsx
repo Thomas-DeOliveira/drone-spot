@@ -31,7 +31,7 @@ export default async function ShareMapPage({ params }: { params: Promise<{ id: s
       update: { invitedUserId: user?.id || null, role },
     });
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
+      const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
       const link = `${baseUrl}/maps/${mapId}`;
       await sendEmail({
         to: email,

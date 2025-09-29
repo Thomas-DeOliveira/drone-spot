@@ -176,7 +176,7 @@ export default async function EditMapPage({ params }: { params: Promise<{ id: st
               <div className="text-sm">Lien public</div>
               <input
                 readOnly
-                value={`${process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")}/m/${map.publicToken}`}
+                value={`${process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/m/${map.publicToken}`}
                 className="w-full h-9 rounded-md border bg-background px-3 text-sm"
               />
               <form id="rotate-link-form" action={rotateLink}>

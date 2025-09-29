@@ -118,11 +118,14 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
   const router = useRouter();
   const { data: session, status } = useSession();
   const { showAuthDialog } = useAuthErrorHandler();
+  const showAuthDialogRef = useRef(showAuthDialog);
+  useEffect(() => { showAuthDialogRef.current = showAuthDialog; }, [showAuthDialog]);
   const [manualOpen, setManualOpen] = useState(false);
   const [manualLat, setManualLat] = useState<string>("");
   const [manualLng, setManualLng] = useState<string>("");
   const [manualError, setManualError] = useState<string>("");
   const searchParams = useSearchParams();
+  const placeValue = searchParams?.get("place") ?? null;
   const [clusters, setClusters] = useState<any[]>([]);
   const [clusterIndex, setClusterIndex] = useState<Supercluster<any, any> | null>(null);
   const lastClustersRef = useRef<any[]>([]);
@@ -155,17 +158,23 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
 
   // Démarrer le mode placement si le paramètre d'URL place=1 est présent
   useEffect(() => {
-    const place = searchParams?.get("place");
-    if (place === "1") {
+    if (placeValue === "1") {
       if (!canCreate) return;
       if (status === "loading") return; // attendre la session
       if (status !== "authenticated") {
+        // Ouvrir la modale d'authentification puis retirer le paramètre ?place=1
         showAuthDialog();
+        if (typeof window !== "undefined") {
+          const sp = new URLSearchParams(window.location.search);
+          sp.delete("place");
+          const newUrl = sp.toString() ? `${window.location.pathname}?${sp.toString()}` : window.location.pathname;
+          window.history.replaceState(null, "", newUrl);
+        }
         return;
       }
       setIsPlacementMode(true);
     }
-  }, [searchParams, status, canCreate, showAuthDialog]);
+  }, [placeValue, status, canCreate]);
 
   const center = useMemo(() => {
     // Position de base: France (Paris). On ne dépend plus du premier spot.

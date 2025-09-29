@@ -65,8 +65,8 @@ export default function AccountPage() {
 
       if (response.ok) {
         setMessage("Profil mis à jour avec succès !");
-        // Mettre à jour la session
-        await update();
+        // Mettre à jour la session côté client pour refléter immédiatement les changements
+        await update({ name: formData.name, email: formData.email } as any);
       } else {
         setMessage(data.error || "Erreur lors de la mise à jour du profil.");
       }
@@ -136,7 +136,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="container mx-auto px-3 md:px-4 py-6 md:py-8 max-w-2xl">
+    <div className="container mx-auto px-3 md:px-4 py-6 md:py-8 pb-24 md:pb-8 max-w-2xl">
       <div className="space-y-4 md:space-y-6">
         <div>
           <h1 className="text-xl md:text-2xl font-bold">Paramètres du compte</h1>

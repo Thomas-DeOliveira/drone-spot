@@ -185,6 +185,7 @@ export default function MobileHeader() {
                     <List className="w-5 h-5" />
                     <span className="text-xs font-medium">Liste</span>
                   </Link>
+                  
                   {session?.user ? (
                     <button
                       type="button"
@@ -303,6 +304,14 @@ export default function MobileHeader() {
 
                   {/* Liens compte */}
                   <Link
+                    href="/my-spots"
+                    onClick={closeMenu}
+                    className="flex items-center gap-3 p-3 rounded-xl border bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                  >
+                    <List className="w-5 h-5" />
+                    <span>Mes spots</span>
+                  </Link>
+                  <Link
                     href="/profile"
                     onClick={closeMenu}
                     className="flex items-center gap-3 p-3 rounded-xl border bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
@@ -310,7 +319,6 @@ export default function MobileHeader() {
                     <User className="w-5 h-5" />
                     <span>Mon profil</span>
                   </Link>
-                  
                   <Link
                     href="/account"
                     onClick={closeMenu}
@@ -505,7 +513,9 @@ export default function MobileHeader() {
               <button
                 type="button"
                 onClick={openMenu}
-                className="flex flex-col items-center justify-center gap-1 py-2 text-xs text-foreground hover:text-accent-foreground"
+                className={`flex flex-col items-center justify-center gap-1 py-2 text-xs ${
+                  isMenuOpen ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                }`}
                 aria-label="Ouvrir le menu"
               >
                 <Menu className="w-5 h-5" />

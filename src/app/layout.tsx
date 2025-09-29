@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SidebarProvider } from "./(components)/ui/sidebar";
@@ -22,6 +22,22 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "FlySpot",
   description: "FlySpot — Carte des spots de drone",
+  manifest: "/manifest.webmanifest",
+  icons: [
+    { rel: "icon", url: "/icon.svg?v=3", media: "(prefers-color-scheme: light)" },
+    { rel: "icon", url: "/icon-dark.svg?v=3", media: "(prefers-color-scheme: dark)" },
+    { rel: "apple-touch-icon", url: "/apple-touch-icon.png?v=3", sizes: "180x180" },
+    { rel: "apple-touch-icon-precomposed", url: "/apple-touch-icon.png?v=3", sizes: "180x180" },
+  ],
+  appleWebApp: {
+    capable: true,
+    title: "FlySpot",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#111827",
 };
 
 export default async function RootLayout({

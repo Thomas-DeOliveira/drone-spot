@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useAuthErrorHandler } from "./hooks/useAuthError";
+import ProgressiveImage from "./ProgressiveImage";
 
 
 type Spot = {
@@ -458,11 +459,15 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
                 <div className="w-full">
                   {s.images?.[0]?.url ? (
                     <div className="relative w-full h-20 sm:h-32 rounded-t-lg overflow-hidden mb-3">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img 
-                        src={s.images[0].url} 
-                        alt={s.title} 
-                        className="h-full w-full object-cover" 
+                      <ProgressiveImage
+                        src={s.images[0].url}
+                        alt={s.title}
+                        fill
+                        className=""
+                        imgClassName="object-cover"
+                        sizes="(max-width: 640px) 176px, 280px"
+                        lowQuality={10}
+                        highQuality={60}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                     </div>

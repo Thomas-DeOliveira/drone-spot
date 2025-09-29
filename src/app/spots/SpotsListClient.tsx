@@ -1,5 +1,6 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
+import ProgressiveImage from "../(components)/ProgressiveImage";
 import Image from "next/image";
 import Link from "next/link";
 import TagFilter from "../(components)/TagFilter";
@@ -168,7 +169,16 @@ export default function SpotsListClient({ spots, tags, showMapBadges = false, sh
             >
               <div className="relative h-40 w-full bg-muted">
                 {s.images?.[0]?.url ? (
-                  <Image src={s.images[0].url} alt={s.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" unoptimized />
+                  <ProgressiveImage
+                    src={s.images[0].url}
+                    alt={s.title}
+                    fill
+                    className=""
+                    imgClassName="object-cover"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    lowQuality={10}
+                    highQuality={60}
+                  />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">Aucune image</div>
                 )}

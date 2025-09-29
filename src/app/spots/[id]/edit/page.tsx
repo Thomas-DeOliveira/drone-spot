@@ -6,6 +6,7 @@ import { writeFile, mkdir, unlink } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
 import DeleteImageConfirm from "@/app/(components)/DeleteImageConfirm";
+import ClientValidator from "./ClientValidator";
 import TagsSelect from "@/app/(components)/TagsSelect";
 import MapMultiSelect from "@/app/(components)/MapMultiSelect";
 
@@ -95,7 +96,35 @@ export default async function EditSpotPage({ params }: Props) {
       }
       if (!allowed) throw new Error("Droit insuffisant sur la carte choisie");
     }
-    if (!spotId || !title) throw new Error("Champs requis manquants");
+    if (!spotId) throw new Error("Spot invalide");
+    if (!title) throw new Error("Le titre est requis");
+    if (!description) throw new Error("La description est requise");
+    if (selected.length === 0) throw new Error("Au moins un tag est requis");
+
+    // Préparer images à supprimer et nouvelles images pour valider qu'il restera au moins une image
+    const toDelete = (formData.getAll("deleteImages") as string[]).filter(Boolean);
+    const allFiles = formData.getAll("images").filter(Boolean) as File[];
+    const nonEmptyFiles = allFiles.filter((file) => Number((file as any)?.size || 0) > 0);
+    const allowedExt = new Set(["jpg","jpeg","png","webp","gif","avif","heic","heif"]);
+    const filteredUploads = nonEmptyFiles.filter((file) => {
+      const size = Number((file as any)?.size || 0);
+      if (size <= 0) return false;
+      const mime = (file as any)?.type as string | undefined;
+      if (mime && mime.startsWith("image/")) return true;
+      const ext = (file.name?.split(".").pop() || "").toLowerCase();
+      return allowedExt.has(ext);
+    });
+    if (nonEmptyFiles.length > 0 && filteredUploads.length === 0) {
+      throw new Error("Seules les images sont autorisées (jpg, jpeg, png, webp, gif, avif, heic, heif)");
+    }
+
+    // Compter les images restantes après suppression et ajout
+    const remainingCount = await prisma.spotImage.count({
+      where: { spotId, NOT: { id: { in: toDelete } } },
+    });
+    if (remainingCount + filteredUploads.length <= 0) {
+      throw new Error("Au moins une image est requise");
+    }
 
     await prisma.spot.update({
       where: { id: spotId, userId: s.user.id as string },
@@ -114,7 +143,6 @@ export default async function EditSpotPage({ params }: Props) {
     }
 
     // Suppression d'images sélectionnées
-    const toDelete = (formData.getAll("deleteImages") as string[]).filter(Boolean);
     if (toDelete.length > 0) {
       const imgs = await prisma.spotImage.findMany({ where: { id: { in: toDelete }, spotId } });
       await prisma.spotImage.deleteMany({ where: { id: { in: toDelete }, spotId } });
@@ -128,24 +156,11 @@ export default async function EditSpotPage({ params }: Props) {
       }
     }
 
-    const newImages = formData.getAll("images").filter(Boolean) as File[];
-    const allowedExt = new Set(["jpg","jpeg","png","webp","gif","avif","heic","heif"]);
-    const filtered = newImages.filter((file) => {
-      // @ts-ignore
-      if (!(file as any)?.size) return false;
-      const mime = (file as any).type as string | undefined;
-      if (mime && mime.startsWith("image/")) return true;
-      const ext = (file.name?.split(".").pop() || "").toLowerCase();
-      return allowedExt.has(ext);
-    });
-    if (newImages.length > 0 && filtered.length === 0) {
-      throw new Error("Seules les images sont autorisées (jpg, jpeg, png, webp, gif, avif, heic, heif)");
-    }
-    if (filtered.length > 0) {
+    if (filteredUploads.length > 0) {
       const uploadsDir = path.join(process.cwd(), "public", "uploads");
       await mkdir(uploadsDir, { recursive: true });
       const urls: string[] = [];
-      for (const file of filtered) {
+      for (const file of filteredUploads) {
         // @ts-ignore
         if (!(file as any)?.size) continue;
         const arrayBuffer = await file.arrayBuffer();
@@ -208,7 +223,8 @@ export default async function EditSpotPage({ params }: Props) {
   return (
     <div className="max-w-2xl mx-auto p-6 pb-24 md:pb-6">
       <h1 className="text-2xl font-semibold mb-4">Modifier le spot</h1>
-      <form action={updateSpot} className="space-y-4">
+      <ClientValidator formId="edit-spot-form" existingImageCount={spot.images.length} />
+      <form id="edit-spot-form" action={updateSpot} className="space-y-4">
         <input type="hidden" name="spotId" value={spot.id} />
 
         <div>

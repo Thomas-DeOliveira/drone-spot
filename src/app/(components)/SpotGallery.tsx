@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import ProgressiveImage from "./ProgressiveImage";
 import { useState, useCallback } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -40,7 +41,7 @@ export default function SpotGallery({ title, images }: SpotGalleryProps) {
         className="relative w-full h-72 lg:h-96 rounded-xl overflow-hidden border focus:outline-none focus:ring-2 focus:ring-ring"
         aria-label="Agrandir l'image"
       >
-        <Image src={main} alt={title} fill className="object-cover" sizes="100vw" priority unoptimized />
+        <ProgressiveImage src={main} alt={title} fill className="" imgClassName="object-cover" sizes="100vw" lowQuality={10} highQuality={60} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/0 to-black/0" />
       </button>
 
@@ -77,14 +78,15 @@ export default function SpotGallery({ title, images }: SpotGalleryProps) {
           ) : null}
 
           <div className="relative w-[90vw] max-w-5xl aspect-video">
-            <Image
+            <ProgressiveImage
               src={images[index].url}
               alt={`${title} ${index + 1}`}
               fill
-              className="object-contain"
+              className=""
+              imgClassName="object-contain"
               sizes="90vw"
-              priority
-              unoptimized
+              lowQuality={10}
+              highQuality={70}
             />
           </div>
         </div>

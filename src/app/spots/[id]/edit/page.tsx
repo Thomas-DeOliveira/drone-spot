@@ -15,7 +15,7 @@ type Props = { params: Promise<{ id: string }> };
 export default async function EditSpotPage({ params }: Props) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) redirect("/api/auth/signin");
+  if (!session?.user?.id) redirect("/");
 
   const spot = await prisma.spot.findUnique({
     where: { id },
@@ -70,7 +70,7 @@ export default async function EditSpotPage({ params }: Props) {
   async function updateSpot(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const spotId = String(formData.get("spotId"));
     const title = String(formData.get("title") || "").trim();
     const description = String(formData.get("description") || "").trim();
@@ -186,7 +186,7 @@ export default async function EditSpotPage({ params }: Props) {
   async function deleteSpot(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const spotId = String(formData.get("spotId"));
     if (!spotId) redirect("/spots");
     const spot = await prisma.spot.findUnique({ where: { id: spotId }, select: { userId: true, mapId: true } });
@@ -321,7 +321,7 @@ export default async function EditSpotPage({ params }: Props) {
             <form key={img.id} id={formId} action={async () => {
               "use server";
               const s2 = await getServerSession(authOptions);
-              if (!s2?.user?.id) redirect("/api/auth/signin");
+              if (!s2?.user?.id) redirect("/");
               const imageId = img.id;
               const toDelete = await prisma.spotImage.findUnique({ where: { id: imageId } });
               if (toDelete && (await prisma.spot.findFirst({ where: { id: toDelete.spotId, userId: s2.user.id as string } }))) {

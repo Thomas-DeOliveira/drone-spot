@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function EditMapPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) redirect("/api/auth/signin");
+  if (!session?.user?.id) redirect("/");
   const map = await prisma.map.findUnique({ where: { id }, select: { id: true, name: true, icon: true, userId: true, linkPublic: true, publicToken: true } });
   if (!map) return notFound();
   const isOwner = map.userId === (session.user.id as string);
@@ -35,7 +35,7 @@ export default async function EditMapPage({ params }: { params: Promise<{ id: st
   async function save(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const id = String(formData.get("id") || "");
     const name = String(formData.get("name") || "").trim();
     const icon = String(formData.get("icon") || "").trim() || null;
@@ -65,7 +65,7 @@ export default async function EditMapPage({ params }: { params: Promise<{ id: st
   async function togglePublic(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const id = String(formData.get("id") || "");
     const enable = String(formData.get("enable") || "false").toLowerCase() === "true";
     if (!id) return;
@@ -85,7 +85,7 @@ export default async function EditMapPage({ params }: { params: Promise<{ id: st
   async function rotateLink(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const id = String(formData.get("id") || "");
     if (!id) return;
     const m = await prisma.map.findUnique({ where: { id }, select: { userId: true } });
@@ -99,7 +99,7 @@ export default async function EditMapPage({ params }: { params: Promise<{ id: st
   async function remove(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const id = String(formData.get("id") || "");
     if (!id) redirect("/maps");
     const m = await prisma.map.findUnique({ where: { id }, select: { userId: true } });

@@ -91,7 +91,7 @@ export default async function SpotDetailPage({ params }: Props) {
   async function rateAction(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const v = Number(formData.get("value"));
     if (!v || v < 1 || v > 5) return;
     await prisma.spotRating.upsert({

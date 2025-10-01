@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function MySpotsPage() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) redirect("/api/auth/signin");
+  if (!session?.user?.id) redirect("/");
 
   const [spots, tags, ownedMaps, sharedAccess] = await Promise.all([
     prisma.spot.findMany({

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function ShareMapPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) redirect("/api/auth/signin");
+  if (!session?.user?.id) redirect("/");
   const map = await prisma.map.findUnique({ where: { id }, select: { id: true, name: true, userId: true } });
   if (!map) return notFound();
   if (map.userId !== (session.user.id as string)) redirect("/maps");
@@ -17,7 +17,7 @@ export default async function ShareMapPage({ params }: { params: Promise<{ id: s
   async function addShare(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const mapId = String(formData.get("mapId") || "");
     const email = String(formData.get("email") || "").trim().toLowerCase();
     const role = String(formData.get("role") || "READ").toUpperCase() as any;
@@ -46,7 +46,7 @@ export default async function ShareMapPage({ params }: { params: Promise<{ id: s
   async function removeShare(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const mapId = String(formData.get("mapId") || "");
     const email = String(formData.get("email") || "").trim().toLowerCase();
     if (!mapId || !email) return;
@@ -59,7 +59,7 @@ export default async function ShareMapPage({ params }: { params: Promise<{ id: s
   async function updateRole(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const mapId = String(formData.get("mapId") || "");
     const email = String(formData.get("email") || "").trim().toLowerCase();
     const role = String(formData.get("role") || "READ").toUpperCase() as any;

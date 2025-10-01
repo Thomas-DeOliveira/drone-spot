@@ -12,13 +12,13 @@ export const dynamic = "force-dynamic";
 export default async function MapsListPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    redirect("/api/auth/signin");
+    redirect("/");
   }
 
   async function createMap(formData: FormData) {
     "use server";
     const sessionInner = await getServerSession(authOptions);
-    if (!sessionInner?.user?.id) redirect("/api/auth/signin");
+    if (!sessionInner?.user?.id) redirect("/");
     const name = String(formData.get("name") || "").trim();
     const userIcon = String(formData.get("icon") || "").trim();
     const icon = userIcon ? userIcon : "✈️"; // Icône par défaut
@@ -31,7 +31,7 @@ export default async function MapsListPage() {
   async function renameMap(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const id = String(formData.get("id") || "");
     const name = String(formData.get("name") || "").trim();
     const icon = String(formData.get("icon") || "").trim() || null;
@@ -44,7 +44,7 @@ export default async function MapsListPage() {
   async function deleteMap(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const id = String(formData.get("id") || "");
     if (!id) return;
     const m = await prisma.map.findUnique({ where: { id }, select: { userId: true } });
@@ -73,7 +73,7 @@ export default async function MapsListPage() {
   async function leaveSharedMap(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const mapId = String(formData.get("mapId") || "");
     if (!mapId) return;
     await prisma.mapShare.deleteMany({
@@ -92,7 +92,7 @@ export default async function MapsListPage() {
   async function shareMap(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const mapId = String(formData.get("mapId") || "");
     const email = String(formData.get("email") || "").trim().toLowerCase();
     if (!mapId || !email) return;

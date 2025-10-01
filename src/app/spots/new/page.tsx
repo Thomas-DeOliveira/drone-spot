@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+// redirect supprimé: la navigation est gérée côté client via AuthFormWrapper
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -168,12 +168,12 @@ export default async function NewSpotPage({ searchParams }: { searchParams: Prom
       }
     }
     if (mapIdStr) {
-      redirect(`/maps/${mapIdStr}`);
+      return { redirectTo: `/maps/${mapIdStr}` };
     }
     if (targetMapIds.length > 0) {
-      redirect(`/maps/${targetMapIds[0]}`);
+      return { redirectTo: `/maps/${targetMapIds[0]}` };
     }
-    redirect("/");
+    return { redirectTo: "/" };
   }
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { User, Camera, X, Upload } from "lucide-react";
+import AvatarCropDialog from "./AvatarCropDialog";
 import Image from "next/image";
 
 interface AvatarUploadProps {
@@ -15,6 +16,8 @@ export default function AvatarUpload({ currentAvatar, userName, onAvatarChange, 
   const [preview, setPreview] = useState<string | null>(currentAvatar || null);
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [isCropOpen, setIsCropOpen] = useState(false);
 
   // Synchroniser l'aperçu avec currentAvatar seulement si pas d'upload en cours
   useEffect(() => {
@@ -41,15 +44,14 @@ export default function AvatarUpload({ currentAvatar, userName, onAvatarChange, 
 
     setError("");
     
-    // Créer un aperçu
+    // Ouvrir le crop d'abord avec un DataURL
     const reader = new FileReader();
     reader.onload = (e) => {
-      setPreview(e.target?.result as string);
+      const dataUrl = e.target?.result as string;
+      setCropSrc(dataUrl);
+      setIsCropOpen(true);
     };
     reader.readAsDataURL(file);
-
-    // Uploader le fichier
-    uploadAvatar(file);
   };
 
   const uploadAvatar = async (file: File) => {
@@ -80,6 +82,13 @@ export default function AvatarUpload({ currentAvatar, userName, onAvatarChange, 
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleCropConfirm = async (blob: Blob) => {
+    // Transformer en File pour l’API
+    const file = new File([blob], "avatar.jpg", { type: "image/jpeg" });
+    setIsCropOpen(false);
+    await uploadAvatar(file);
   };
 
   const handleRemoveAvatar = async () => {
@@ -173,6 +182,14 @@ export default function AvatarUpload({ currentAvatar, userName, onAvatarChange, 
         accept="image/*"
         onChange={handleFileSelect}
         className="hidden"
+      />
+
+      <AvatarCropDialog
+        open={isCropOpen}
+        onOpenChange={setIsCropOpen}
+        imageSrc={cropSrc || ""}
+        onConfirm={handleCropConfirm}
+        cropSize={96}
       />
 
       {editable && error && (

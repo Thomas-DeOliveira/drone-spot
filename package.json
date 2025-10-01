@@ -30,6 +30,7 @@
     "prisma": "^6.16.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-easy-crop": "^5.5.2",
     "react-leaflet": "^5.0.0",
     "resend": "^6.1.0",
     "supercluster": "8.0.1",

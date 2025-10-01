@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) redirect("/api/auth/signin");
+  if (!session?.user?.id) redirect("/");
   const me = await prisma.user.findUnique({ where: { id: session.user.id as string }, select: { role: true } });
   if (me?.role !== "ADMIN") redirect("/");
 
@@ -18,7 +18,7 @@ export default async function AdminPage() {
   async function addTag(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const me = await prisma.user.findUnique({ where: { id: s.user.id as string }, select: { role: true } });
     if (me?.role !== "ADMIN") redirect("/");
     const name = String(formData.get("name") || "").trim();
@@ -30,7 +30,7 @@ export default async function AdminPage() {
   async function deleteTag(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const me = await prisma.user.findUnique({ where: { id: s.user.id as string }, select: { role: true } });
     if (me?.role !== "ADMIN") redirect("/");
     const id = String(formData.get("id"));
@@ -42,7 +42,7 @@ export default async function AdminPage() {
   async function deleteSpot(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const me = await prisma.user.findUnique({ where: { id: s.user.id as string }, select: { role: true } });
     if (me?.role !== "ADMIN") redirect("/");
     const id = String(formData.get("id"));
@@ -54,7 +54,7 @@ export default async function AdminPage() {
   async function toggleRole(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const me = await prisma.user.findUnique({ where: { id: s.user.id as string }, select: { role: true } });
     if (me?.role !== "ADMIN") redirect("/");
     const id = String(formData.get("id"));
@@ -71,7 +71,7 @@ export default async function AdminPage() {
   async function deleteUser(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) redirect("/");
     const me = await prisma.user.findUnique({ where: { id: s.user.id as string }, select: { role: true } });
     if (me?.role !== "ADMIN") redirect("/");
     const id = String(formData.get("id"));

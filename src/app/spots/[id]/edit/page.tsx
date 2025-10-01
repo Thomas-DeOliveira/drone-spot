@@ -33,19 +33,14 @@ export default async function EditSpotPage({ params }: Props) {
     },
   });
   if (!spot) return notFound();
-  if (spot.userId !== session.user.id) {
-    // Autoriser si le spot appartient à une carte partagée en écriture avec l'utilisateur
-    const shared = await prisma.mapShare.findFirst({
-      where: {
-        mapId: spot.mapId || "",
-        role: "WRITE",
-        OR: [
-          { invitedUserId: session.user.id as string },
-          { invitedEmail: (session.user.email as string) || "" },
-        ],
-      },
-    });
-    if (!shared) redirect(`/spots/${id}`);
+
+  // Autorisation: propriétaire OU ADMIN uniquement
+  const me = await prisma.user.findUnique({ where: { id: session.user.id as string }, select: { role: true } });
+  const isAdmin = me?.role === "ADMIN";
+  const isOwner = spot.userId === session.user.id;
+  
+  if (!isAdmin && !isOwner) {
+    redirect(`/spots/${id}`);
   }
 
   const [allTags, ownedMaps, sharedWriteMapsRaw] = await Promise.all([
@@ -77,25 +72,28 @@ export default async function EditSpotPage({ params }: Props) {
     const selected = String(formData.get("tags") || "").split(",").map((v) => v.trim()).filter(Boolean);
     const mapsChecked = (formData.getAll("maps") as string[]).filter(Boolean);
     const targetMapIds = Array.from(new Set(mapsChecked));
+
+    // Charger le spot pour vérifier l'autorisation effective
+    const current = await prisma.spot.findUnique({ where: { id: spotId }, select: { userId: true, mapId: true } });
+    if (!current) throw new Error("Spot invalide");
+
+    // Vérifier autorisation d'éditer: OWNER ou ADMIN uniquement
+    const meInner = await prisma.user.findUnique({ where: { id: s.user.id as string }, select: { role: true } });
+    const isAdminInner = meInner?.role === "ADMIN";
+    const isOwnerInner = current.userId === (s.user.id as string);
+    
+    if (!isAdminInner && !isOwnerInner) {
+      throw new Error("Vous n'avez pas le droit de modifier ce spot");
+    }
+
+    // Vérifier droits sur les cartes sélectionnées
     for (const mid of targetMapIds) {
       const m = await prisma.map.findUnique({ where: { id: mid }, select: { userId: true } });
       if (!m) throw new Error("Carte invalide");
-      let allowed = m.userId === (s.user.id as string);
-      if (!allowed) {
-        const share = await prisma.mapShare.findFirst({
-          where: {
-            mapId: mid,
-            role: "WRITE",
-            OR: [
-              { invitedUserId: s.user.id as string },
-              { invitedEmail: (s.user.email as string) || "" },
-            ],
-          },
-        });
-        allowed = Boolean(share);
-      }
+      let allowed = isAdminInner || m.userId === (s.user.id as string);
       if (!allowed) throw new Error("Droit insuffisant sur la carte choisie");
     }
+
     if (!spotId) throw new Error("Spot invalide");
     if (!title) throw new Error("Le titre est requis");
     if (!description) throw new Error("La description est requise");
@@ -127,7 +125,7 @@ export default async function EditSpotPage({ params }: Props) {
     }
 
     await prisma.spot.update({
-      where: { id: spotId, userId: s.user.id as string },
+      where: { id: spotId },
       data: {
         title,
         description: description || null,
@@ -191,22 +189,14 @@ export default async function EditSpotPage({ params }: Props) {
     if (!spotId) redirect("/spots");
     const spot = await prisma.spot.findUnique({ where: { id: spotId }, select: { userId: true, mapId: true } });
     if (!spot) redirect("/spots");
-    // Autoriser suppression si propriétaire du spot, ou WRITE sur la carte du spot
-    let canDelete = spot.userId === (s.user.id as string);
-    if (!canDelete && spot.mapId) {
-      const share = await prisma.mapShare.findFirst({
-        where: {
-          mapId: spot.mapId,
-          role: "WRITE",
-          OR: [
-            { invitedUserId: s.user.id as string },
-            { invitedEmail: (s.user.email as string) || "" },
-          ],
-        },
-      });
-      canDelete = Boolean(share);
+    // Autoriser suppression si propriétaire du spot ou ADMIN uniquement
+    const meDelete = await prisma.user.findUnique({ where: { id: s.user.id as string }, select: { role: true } });
+    const isAdminDelete = meDelete?.role === "ADMIN";
+    const isOwnerDelete = spot.userId === (s.user.id as string);
+    
+    if (!isAdminDelete && !isOwnerDelete) {
+      redirect(`/spots/${spotId}`);
     }
-    if (!canDelete) redirect(`/spots/${spotId}`);
     const imgs = await prisma.spotImage.findMany({ where: { spotId } });
     await prisma.spot.delete({ where: { id: spotId } });
     for (const img of imgs) {
@@ -324,12 +314,20 @@ export default async function EditSpotPage({ params }: Props) {
               if (!s2?.user?.id) redirect("/");
               const imageId = img.id;
               const toDelete = await prisma.spotImage.findUnique({ where: { id: imageId } });
-              if (toDelete && (await prisma.spot.findFirst({ where: { id: toDelete.spotId, userId: s2.user.id as string } }))) {
-                await prisma.spotImage.delete({ where: { id: imageId } });
-                if (toDelete.url.startsWith("/uploads/")) {
-                  const fpath = path.join(process.cwd(), "public", toDelete.url.replace(/^\//, ""));
-                  await unlink(fpath).catch(() => {});
-                }
+              if (!toDelete) return redirect(`/spots/${spot.id}/edit`);
+              const ownerSpot = await prisma.spot.findUnique({ where: { id: toDelete.spotId }, select: { userId: true, mapId: true } });
+              if (!ownerSpot) return redirect(`/spots/${spot.id}/edit`);
+              const me2 = await prisma.user.findUnique({ where: { id: s2.user.id as string }, select: { role: true } });
+              const isAdmin2 = me2?.role === "ADMIN";
+              const isOwner2 = ownerSpot.userId === (s2.user.id as string);
+              
+              if (!isAdmin2 && !isOwner2) {
+                return redirect(`/spots/${spot.id}/edit`);
+              }
+              await prisma.spotImage.delete({ where: { id: imageId } });
+              if (toDelete.url.startsWith("/uploads/")) {
+                const fpath = path.join(process.cwd(), "public", toDelete.url.replace(/^\//, ""));
+                await unlink(fpath).catch(() => {});
               }
               redirect(`/spots/${spot.id}/edit`);
             }} />

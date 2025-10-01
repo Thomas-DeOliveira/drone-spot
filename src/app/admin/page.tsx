@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
@@ -184,10 +185,18 @@ export default async function AdminPage() {
                   <td className="py-2 pr-3">{s.user?.name || s.user?.email || ""}</td>
                   <td className="py-2 pr-3">{new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium" }).format(s.createdAt)}</td>
                   <td className="py-2 pr-3">
-                    <form action={deleteSpot}>
-                      <input type="hidden" name="id" value={s.id} />
-                      <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border bg-background text-foreground hover:bg-accent hover:text-accent-foreground h-7 px-2">Supprimer</button>
-                    </form>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/spots/${s.id}/edit`}
+                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border bg-background text-foreground hover:bg-accent hover:text-accent-foreground h-7 px-2"
+                      >
+                        Modifier
+                      </Link>
+                      <form action={deleteSpot}>
+                        <input type="hidden" name="id" value={s.id} />
+                        <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-destructive text-destructive-foreground hover:opacity-90 h-7 px-2">Supprimer</button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               ))}

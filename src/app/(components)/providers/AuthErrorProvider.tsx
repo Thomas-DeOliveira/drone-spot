@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useCallback } from "react";
 import AuthDialog from "../AuthDialog";
 
 interface AuthErrorContextType {
@@ -12,8 +12,8 @@ const AuthErrorContext = createContext<AuthErrorContextType | undefined>(undefin
 export function AuthErrorProvider({ children }: { children: ReactNode }) {
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
 
-  const showAuthDialog = () => setIsAuthDialogOpen(true);
-  const hideAuthDialog = () => setIsAuthDialogOpen(false);
+  const showAuthDialog = useCallback(() => setIsAuthDialogOpen(true), []);
+  const hideAuthDialog = useCallback(() => setIsAuthDialogOpen(false), []);
 
   return (
     <AuthErrorContext.Provider value={{ showAuthDialog, hideAuthDialog }}>

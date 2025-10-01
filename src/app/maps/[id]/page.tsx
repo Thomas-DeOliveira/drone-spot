@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -6,13 +6,24 @@ import MapViewClient from "@/app/(components)/MapViewClient";
 import ViewModeSwitch from "@/app/(components)/ViewModeSwitch";
 import SpotsListClient from "@/app/spots/SpotsListClient";
 import { headers } from "next/headers";
+import RequireAuthGate from "@/app/(components)/RequireAuthGate";
 
 export const dynamic = "force-dynamic";
 
 export default async function UserMapPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) redirect("/api/auth/signin");
+  if (!session?.user?.id) {
+    return (
+      <div className="h-full w-full flex flex-col">
+        <div className="p-3 md:p-4 border-b shrink-0">
+          <h1 className="text-lg md:text-xl font-semibold">Carte privée</h1>
+          <p className="text-xs text-muted-foreground">Vous devez être connecté pour accéder à cette carte.</p>
+        </div>
+        <RequireAuthGate />
+      </div>
+    );
+  }
 
   const map = await prisma.map.findUnique({ where: { id }, select: { id: true, name: true, userId: true } });
   if (!map) return notFound();
@@ -61,7 +72,7 @@ export default async function UserMapPage({ params }: { params: Promise<{ id: st
   async function leaveMap(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
-    if (!s?.user?.id) redirect("/api/auth/signin");
+    if (!s?.user?.id) return;
     const mapId = String(formData.get("mapId") || "");
     if (!mapId) redirect("/maps");
     // Le propriétaire ne peut pas "quitter" sa propre carte

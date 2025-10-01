@@ -187,14 +187,15 @@ export default function MobileHeader() {
                   </Link>
                   
                   {session?.user ? (
-                    <button
+                  <button
                       type="button"
                       onClick={() => {
                         closeMenu();
                         const m = location.pathname.match(/^\/maps\/([^\/\?]+)/);
                         if (m && m[1]) {
-                          location.href = `/maps/${m[1]}?place=1&view=map`;
-                          return;
+                        // Déjà sur la carte: activer le placement sans navigation pour garder la vue
+                        window.dispatchEvent(new CustomEvent("start-spot-placement"));
+                        return;
                         }
                         if (location.pathname !== "/") {
                           location.href = "/?place=1";
@@ -373,7 +374,8 @@ export default function MobileHeader() {
                 onClick={() => {
                   const m = location.pathname.match(/^\/maps\/([^\/\?]+)/);
                   if (m && m[1]) {
-                    location.href = `/maps/${m[1]}?place=1&view=map`;
+                    // Activer la saisie de placement sans recharger la page
+                    window.dispatchEvent(new CustomEvent("start-spot-placement"));
                     return;
                   }
                   if (location.pathname !== "/") {

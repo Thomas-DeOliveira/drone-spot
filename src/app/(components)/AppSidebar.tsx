@@ -277,8 +277,8 @@ export default function AppSidebar() {
                 onClick={() => {
                   const m = location.pathname.match(/^\/maps\/([^\/\?]+)/);
                   if (m && m[1]) {
-                    // Rester sur la carte perso et activer le placement
-                    location.href = `/maps/${m[1]}?place=1&view=map`;
+                    // Déjà sur une carte perso: ne pas naviguer, activer le mode placement pour conserver le zoom/centre
+                    window.dispatchEvent(new CustomEvent("start-spot-placement"));
                     return;
                   }
                   if (location.pathname !== "/") {
@@ -312,7 +312,8 @@ export default function AppSidebar() {
                       onClick={() => {
                         const m = location.pathname.match(/^\/maps\/([^\/\?]+)/);
                         if (m && m[1]) {
-                          location.href = `/maps/${m[1]}?place=1&view=map`;
+                          // Déjà sur une carte perso: activer le mode placement sans recharger
+                          window.dispatchEvent(new CustomEvent("start-spot-placement"));
                           return;
                         }
                         if (location.pathname !== "/") {

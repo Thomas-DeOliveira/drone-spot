@@ -22,6 +22,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "FlySpot",
   description: "FlySpot — Carte des spots de drone",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000"),
   manifest: "/manifest.webmanifest",
   icons: [
     { rel: "icon", url: "/icon.svg?v=3", media: "(prefers-color-scheme: light)" },

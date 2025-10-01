@@ -102,7 +102,7 @@ export function SidebarGroupLabel({ className, children }: { className?: string;
   return (
     <div
       className={cn(
-        "px-2 text-xs font-medium text-sidebar-foreground/60 mb-1",
+        "px-2 text-xs font-medium text-sidebar-foreground/60 mb-2",
         "group-data-[state=collapsed]:hidden",
         className
       )}
@@ -148,7 +148,7 @@ export function SidebarMenuButton({
         "py-1.5",
         "text-sm text-sidebar-foreground",
         "transition-colors duration-200 focus-visible:outline-none",
-        "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
+        "data-[active=true]:bg-muted data-[active=true]:text-muted-foreground data-[active=true]:hover:bg-muted data-[active=true]:hover:text-muted-foreground",
         className
       )}
     >

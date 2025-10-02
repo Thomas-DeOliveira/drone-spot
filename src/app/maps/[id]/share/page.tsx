@@ -2,7 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { sendEmail } from "@/lib/mailer";
+import { sendMapShareInviteEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,7 @@ export default async function ShareMapPage({ params }: { params: Promise<{ id: s
     const email = String(formData.get("email") || "").trim().toLowerCase();
     const role = String(formData.get("role") || "READ").toUpperCase() as any;
     if (!mapId || !email) return;
-    const m = await prisma.map.findUnique({ where: { id: mapId }, select: { userId: true, name: true } });
+    const m = await prisma.map.findUnique({ where: { id: mapId }, select: { userId: true, name: true, user: { select: { name: true, email: true } } } });
     if (!m || m.userId !== (s.user.id as string)) return;
     const user = await prisma.user.findUnique({ where: { email } });
     await prisma.mapShare.upsert({
@@ -31,14 +31,8 @@ export default async function ShareMapPage({ params }: { params: Promise<{ id: s
       update: { invitedUserId: user?.id || null, role },
     });
     try {
-      const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-      const link = `${baseUrl}/maps/${mapId}`;
-      await sendEmail({
-        to: email,
-        subject: `Partage de la carte "${m.name}" sur FlySpot`,
-        html: `<p>Bonjour,</p><p>La carte <strong>${m.name}</strong> vous a été partagée sur FlySpot.</p><p>Accès: ${role === "WRITE" ? "Modification" : "Lecture"}</p><p><a href="${link}">Ouvrir la carte</a></p>`,
-        text: `La carte ${m.name} vous a été partagée. Accès: ${role}. Ouvrir: ${link}`,
-      });
+      const ownerName = m.user?.name || m.user?.email || "un utilisateur";
+      await sendMapShareInviteEmail(email, m.name, role, mapId, ownerName);
     } catch {}
     redirect(`/maps/${mapId}/share?updated=1`);
   }

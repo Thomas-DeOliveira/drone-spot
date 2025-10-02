@@ -46,10 +46,13 @@ export default function SmallMap({ latitude, longitude, className }: SmallMapPro
         className="h-60 w-full rounded-md overflow-hidden"
         attributionControl={false}
         zoomControl={false}
+        maxBounds={L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180))}
+        maxBoundsViscosity={1}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution="&copy; OpenStreetMap contributors"
+          noWrap
         />
         <Marker position={[latitude, longitude]} icon={spotIcon as any} />
       </MapContainer>

@@ -463,6 +463,8 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
         center={center}
         zoom={6}
         maxZoom={22}
+        maxBounds={L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180))}
+        maxBoundsViscosity={1}
         style={{ height: "100%", width: "100%" }}
         className={`h-full w-full touch-pan-y [&>.leaflet-pane]:!z-0 ${isPlacementMode ? 'cursor-crosshair' : ''}`}
         scrollWheelZoom
@@ -480,6 +482,7 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
           <TileLayer
             attribution='Tiles © Esri — Source: Esri, i‑cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR‑EGP, and the GIS User Community'
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            noWrap
           />
         ) : (
           <TileLayer
@@ -488,6 +491,7 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
             maxNativeZoom={19}
             maxZoom={22}
             detectRetina={false}
+            noWrap
           />
         )}
         <MapClickHandler onMapClick={handleMapClick} isPlacementMode={isPlacementMode} canCreate={canCreate} />

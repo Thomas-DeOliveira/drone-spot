@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
-import TagsSelect from "@/app/(components)/TagsSelect";
+import { TagMultiSelectNew } from "@/app/(components)/TagMultiSelect";
 import Link from "next/link";
 import MultiImageUploader from "../../(components)/MultiImageUploader";
 import AuthRequiredAction from "@/app/(components)/AuthRequiredAction";
@@ -40,6 +40,9 @@ export default async function NewSpotPage({ searchParams }: { searchParams: Prom
   const sharedWriteMaps = (sharedWriteMapsRaw as any[]).map((s: any) => s.map);
   const seen: Record<string, boolean> = {};
   let userMaps = [...(ownedMaps as any[]), ...sharedWriteMaps].filter((m) => (seen[m.id] ? false : (seen[m.id] = true)));
+
+  // Créer une référence stable pour les options de tags
+  const tagOptions = allTags.map((t) => t.name);
 
   // S'il y a un mapId dans l'URL mais qu'il n'est pas dans la liste, on l'ajoute (si l'utilisateur a le droit WRITE)
   const preselectedMapId = resolvedSearchParams.mapId || "";
@@ -107,7 +110,7 @@ export default async function NewSpotPage({ searchParams }: { searchParams: Prom
     const longitude = Number(formData.get("longitude"));
     const mapIdStr = String(formData.get("mapId") || resolvedSearchParams.mapId || "").trim();
     const mapsChecked = (formData.getAll("maps") as string[]).filter(Boolean);
-    const selected = String(formData.get("tags") || "").split(",").map((v) => v.trim()).filter(Boolean);
+    const selected = (formData.getAll("tags") as string[]).map((v) => String(v).trim()).filter(Boolean);
     if (!title || !description || selected.length === 0 || validImages.length === 0 || Number.isNaN(latitude) || Number.isNaN(longitude)) {
       return { error: "Titre, description, au moins un tag, une image, latitude et longitude sont requis." };
     }
@@ -248,13 +251,12 @@ export default async function NewSpotPage({ searchParams }: { searchParams: Prom
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Tags</label>
-            <TagsSelect name="tags" options={allTags.map((t) => t.name)} required />
-            <p className="sr-only">
-              {/* Champ virtuel pour permettre au navigateur de détecter l'obligation via contrainte personnalisée */}
-            </p>
-          </div>
+          <TagMultiSelectNew
+            name="tags"
+            options={tagOptions}
+            label="Tags"
+            required
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">

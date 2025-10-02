@@ -8,7 +8,7 @@ import { randomUUID } from "crypto";
 import DeleteImageConfirm from "@/app/(components)/DeleteImageConfirm";
 import EditImagesSection from "@/app/(components)/EditImagesSection";
 import ClientValidator from "./ClientValidator";
-import TagsSelect from "@/app/(components)/TagsSelect";
+import TagMultiSelect from "@/app/(components)/TagMultiSelect";
 import MapMultiSelect from "@/app/(components)/MapMultiSelect";
 
 type Props = { params: Promise<{ id: string }>; searchParams?: Promise<Record<string, string | undefined>> };
@@ -64,6 +64,10 @@ export default async function EditSpotPage({ params, searchParams }: Props) {
   const seen: Record<string, boolean> = {};
   const userMaps = [...ownedMaps, ...sharedWriteMaps].filter((m) => (seen[m.id] ? false : (seen[m.id] = true)));
 
+  // Créer une référence stable pour les options de tags
+  const tagOptions = allTags.map((t) => t.name);
+  const defaultTagValues = spot.tags.map((t) => t.name);
+
   async function updateSpot(formData: FormData) {
     "use server";
     const s = await getServerSession(authOptions);
@@ -71,7 +75,7 @@ export default async function EditSpotPage({ params, searchParams }: Props) {
     const spotId = String(formData.get("spotId"));
     const title = String(formData.get("title") || "").trim();
     const description = String(formData.get("description") || "").trim();
-    const selected = String(formData.get("tags") || "").split(",").map((v) => v.trim()).filter(Boolean);
+    const selected = (formData.getAll("tags") as string[]).map((v) => String(v).trim()).filter(Boolean);
     const mapsChecked = (formData.getAll("maps") as string[]).filter(Boolean);
     const targetMapIds = Array.from(new Set(mapsChecked));
 
@@ -88,11 +92,25 @@ export default async function EditSpotPage({ params, searchParams }: Props) {
       throw new Error("Vous n'avez pas le droit de modifier ce spot");
     }
 
-    // Vérifier droits sur les cartes sélectionnées
+    // Vérifier droits sur les cartes sélectionnées (OWNER, ADMIN ou WRITE share)
     for (const mid of targetMapIds) {
       const m = await prisma.map.findUnique({ where: { id: mid }, select: { userId: true } });
       if (!m) throw new Error("Carte invalide");
       let allowed = isAdminInner || m.userId === (s.user.id as string);
+      if (!allowed) {
+        const share = await prisma.mapShare.findFirst({
+          where: {
+            mapId: mid,
+            role: "WRITE",
+            OR: [
+              { invitedUserId: s.user.id as string },
+              { invitedEmail: (s.user.email as string) || "" },
+            ],
+          },
+          select: { id: true },
+        });
+        allowed = Boolean(share);
+      }
       if (!allowed) throw new Error("Droit insuffisant sur la carte choisie");
     }
 
@@ -270,15 +288,13 @@ export default async function EditSpotPage({ params, searchParams }: Props) {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Tags</label>
-          <TagsSelect
-            name="tags"
-            options={allTags.map((t) => t.name)}
-            defaultValues={spot.tags.map((t) => t.name)}
-            required
-          />
-        </div>
+        <TagMultiSelect
+          name="tags"
+          options={tagOptions}
+          defaultValues={defaultTagValues}
+          label="Tags"
+          required
+        />
 
         <EditImagesSection spotId={spot.id} images={spot.images} />
 

@@ -130,6 +130,7 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
   const [clusters, setClusters] = useState<any[]>([]);
   const [clusterIndex, setClusterIndex] = useState<Supercluster<any, any> | null>(null);
   const lastClustersRef = useRef<any[]>([]);
+  const [currentZoom, setCurrentZoom] = useState<number>(6);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
 
   useEffect(() => {
@@ -253,6 +254,7 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
     if (!clusterIndex || !mapRef.current) return;
     const b = mapRef.current.getBounds();
     const zoom = Math.round(mapRef.current.getZoom());
+    setCurrentZoom(zoom);
     const bbox: [number, number, number, number] = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()];
     const cs = clusterIndex.getClusters(bbox, zoom);
     // Éviter des mises à jour inutiles qui peuvent boucler
@@ -379,6 +381,75 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
 
   // Plus besoin de surveiller les popups pour la création de spot
 
+  // Préparer les entités à rendre avec léger décalage si plusieurs points ont exactement les mêmes coordonnées au zoom élevé
+  const renderedItems = useMemo(() => {
+    // Structure de sortie unifiée
+    type Item = { kind: 'cluster'; id: number; lat: number; lng: number; count: number } | { kind: 'point'; lat: number; lng: number; spotId: string };
+    const items: Item[] = [];
+    if (!clusters || clusters.length === 0) return items;
+
+    // En-dessous d'un certain zoom, rendre tel quel
+    if (currentZoom < 19) {
+      for (const f of clusters as any[]) {
+        const [lng, lat] = f.geometry.coordinates as [number, number];
+        const isCluster = f.properties && f.properties.cluster;
+        if (isCluster) {
+          items.push({ kind: 'cluster', id: f.id as number, lat, lng, count: f.properties.point_count as number });
+        } else {
+          const spotId: string = f.properties?.spotId;
+          items.push({ kind: 'point', lat, lng, spotId });
+        }
+      }
+      return items;
+    }
+
+    // Au zoom élevé: éviter la superposition parfaite par un léger décalage radial
+    const clusterItems: Item[] = [];
+    const pointGroups = new Map<string, Array<{ lat: number; lng: number; spotId: string }>>();
+
+    for (const f of clusters as any[]) {
+      const [lng, lat] = f.geometry.coordinates as [number, number];
+      const isCluster = f.properties && f.properties.cluster;
+      if (isCluster) {
+        clusterItems.push({ kind: 'cluster', id: f.id as number, lat, lng, count: f.properties.point_count as number });
+      } else {
+        const spotId: string = f.properties?.spotId;
+        // Regrouper par coordonnée exacte (précision haute)
+        const key = `${lat.toFixed(7)},${lng.toFixed(7)}`;
+        const arr = pointGroups.get(key) || [];
+        arr.push({ lat, lng, spotId });
+        pointGroups.set(key, arr);
+      }
+    }
+
+    // Convertir mètres -> degrés pour un petit rayon
+    const jitterLatLng = (lat: number, lng: number, index: number, total: number) => {
+      const radiusMeters = 5; // ~5m de décalage radial
+      if (total <= 1) return [lat, lng] as [number, number];
+      const angle = (2 * Math.PI * index) / total;
+      const metersPerDegLat = 111320; // approx
+      const metersPerDegLng = 111320 * Math.cos((lat * Math.PI) / 180);
+      const dLat = (radiusMeters * Math.cos(angle)) / metersPerDegLat;
+      const dLng = metersPerDegLng > 0 ? (radiusMeters * Math.sin(angle)) / metersPerDegLng : 0;
+      return [lat + dLat, lng + dLng] as [number, number];
+    };
+
+    const pointItems: Item[] = [];
+    for (const arr of pointGroups.values()) {
+      if (arr.length === 1) {
+        const p = arr[0];
+        pointItems.push({ kind: 'point', lat: p.lat, lng: p.lng, spotId: p.spotId });
+      } else {
+        arr.forEach((p, i) => {
+          const [jLat, jLng] = jitterLatLng(p.lat, p.lng, i, arr.length);
+          pointItems.push({ kind: 'point', lat: jLat, lng: jLng, spotId: p.spotId });
+        });
+      }
+    }
+
+    return [...clusterItems, ...pointItems];
+  }, [clusters, currentZoom]);
+
   return (
     <div className="relative h-full w-full">
       {!canCreate && !isUiSuppressed && (
@@ -424,34 +495,29 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
           <Marker position={userPos} icon={createUserPositionIcon()} />
         ) : null}
 
-        {clusters.map((f: any) => {
-          const [lng, lat] = f.geometry.coordinates;
-          const isCluster = f.properties && f.properties.cluster;
-          if (isCluster) {
-            const count: number = f.properties.point_count;
-            const icon = createClusterIcon(count, isDarkMode);
+        {renderedItems.map((item: any) => {
+          if (item.kind === 'cluster') {
+            const icon = createClusterIcon(item.count, isDarkMode);
             return (
               <Marker
-                key={`cluster-${f.id}`}
-                position={[lat, lng]}
+                key={`cluster-${item.id}`}
+                position={[item.lat, item.lng]}
                 icon={icon}
                 eventHandlers={{
                   click: () => {
                     if (!clusterIndex || !mapRef.current) return;
-                    const expansionZoom = Math.min(clusterIndex.getClusterExpansionZoom(f.id), 18);
-                    mapRef.current.setView([lat, lng], expansionZoom, { animate: true });
+                    const expansionZoom = Math.min(clusterIndex.getClusterExpansionZoom(item.id), 18);
+                    mapRef.current.setView([item.lat, item.lng], expansionZoom, { animate: true });
                   },
                 }}
               />
             );
           }
-          // Point unique
-          const spotId: string = f.properties?.spotId;
-          const s = filteredSpots.find((sp) => sp.id === spotId);
+          const s = filteredSpots.find((sp) => sp.id === item.spotId);
           if (!s) return null;
           return (
-            <Marker key={s.id} position={[s.latitude, s.longitude]} icon={createThemedMarkerIcon()}>
-              <Popup 
+            <Marker key={s.id} position={[item.lat, item.lng]} icon={createThemedMarkerIcon()}>
+              <Popup
                 className="custom-popup" 
                 maxWidth={isSmallScreen ? 176 : 280} 
                 minWidth={isSmallScreen ? 176 : 280}

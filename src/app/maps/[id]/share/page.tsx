@@ -31,7 +31,7 @@ export default async function ShareMapPage({ params }: { params: Promise<{ id: s
       update: { invitedUserId: user?.id || null, role },
     });
     try {
-      const ownerName = m.user?.name || m.user?.email || "un utilisateur";
+      const ownerName = m.user?.name || "un utilisateur";
       await sendMapShareInviteEmail(email, m.name, role, mapId, ownerName);
     } catch {}
     redirect(`/maps/${mapId}/share?updated=1`);

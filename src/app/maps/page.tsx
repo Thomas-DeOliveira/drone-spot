@@ -66,7 +66,19 @@ export default async function MapsListPage() {
         { invitedEmail: (session.user.email as string) || "" },
       ],
     },
-    select: { map: { select: { id: true, name: true, icon: true, createdAt: true, linkPublic: true } } },
+    select: {
+      role: true,
+      map: {
+        select: {
+          id: true,
+          name: true,
+          icon: true,
+          createdAt: true,
+          linkPublic: true,
+          user: { select: { name: true, email: true } },
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -188,7 +200,9 @@ export default async function MapsListPage() {
                     {s.map.linkPublic ? "Publique" : "Privée"}
                   </span>
                 </div>
-                <div className="text-xs text-muted-foreground">Créée le {new Date(s.map.createdAt).toLocaleDateString()}</div>
+                <div className="text-xs text-muted-foreground">
+                  Créée le {new Date(s.map.createdAt).toLocaleDateString()} • Partagée par {s.map.user?.name || "un utilisateur"}
+                </div>
               </a>
               <form action={leaveSharedMap}>
                 <input type="hidden" name="mapId" value={s.map.id} />

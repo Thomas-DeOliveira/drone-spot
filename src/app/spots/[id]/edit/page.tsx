@@ -2,18 +2,20 @@ import { redirect, notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { writeFile, mkdir, unlink } from "fs/promises";
+import { writeFile, mkdir, unlink, stat } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
 import DeleteImageConfirm from "@/app/(components)/DeleteImageConfirm";
+import EditImagesSection from "@/app/(components)/EditImagesSection";
 import ClientValidator from "./ClientValidator";
 import TagsSelect from "@/app/(components)/TagsSelect";
 import MapMultiSelect from "@/app/(components)/MapMultiSelect";
 
-type Props = { params: Promise<{ id: string }> };
+type Props = { params: Promise<{ id: string }>; searchParams?: Promise<Record<string, string | undefined>> };
 
-export default async function EditSpotPage({ params }: Props) {
+export default async function EditSpotPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const sp = searchParams ? await searchParams : {};
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/");
 
@@ -122,6 +124,25 @@ export default async function EditSpotPage({ params }: Props) {
     });
     if (remainingCount + filteredUploads.length <= 0) {
       throw new Error("Au moins une image est requise");
+    }
+
+    // Limiter la taille totale (images existantes non supprimées + nouvelles) à 25 Mo
+    const MAX_TOTAL_MB = 25;
+    const existing = await prisma.spotImage.findMany({ where: { spotId, NOT: { id: { in: toDelete } } }, select: { url: true } });
+    let existingTotalBytes = 0;
+    for (const img of existing) {
+      if (img.url.startsWith("/uploads/")) {
+        const p = path.join(process.cwd(), "public", img.url.replace(/^\//, ""));
+        try {
+          const st = await stat(p);
+          existingTotalBytes += st.size;
+        } catch {}
+      }
+    }
+    const newTotalBytes = filteredUploads.reduce((acc, f) => acc + Number((f as any)?.size || 0), 0);
+    if (existingTotalBytes + newTotalBytes > MAX_TOTAL_MB * 1024 * 1024) {
+      const msg = encodeURIComponent(`La taille totale des images dépasse ${MAX_TOTAL_MB} Mo. Réduisez/compressez vos images.`);
+      return redirect(`/spots/${spotId}/edit?error=${msg}`);
     }
 
     await prisma.spot.update({
@@ -259,33 +280,7 @@ export default async function EditSpotPage({ params }: Props) {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium">Ajouter des images</label>
-          <input
-            type="file"
-            name="images"
-            multiple
-            accept="image/*"
-            className="mt-1 w-full border rounded px-3 py-2 bg-transparent"
-          />
-          <p className="text-xs text-muted-foreground mt-1">Les images existantes restent conservées.</p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Images existantes</label>
-          <div className="grid grid-cols-3 gap-3">
-            {spot.images.map((img) => {
-              const formId = `delete-img-${img.id}`;
-              return (
-                <div key={img.id} className="relative w-full aspect-[4/3] rounded-md overflow-hidden border">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={img.url} alt="image" className="h-full w-full object-cover" />
-                  <DeleteImageConfirm formId={formId} />
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <EditImagesSection spotId={spot.id} images={spot.images} />
 
         <div className="flex gap-2">
           <button
@@ -303,12 +298,35 @@ export default async function EditSpotPage({ params }: Props) {
           </button>
         </div>
       </form>
-      {/* Forms de suppression (hors du formulaire principal pour éviter l'imbrication) */}
+      {/* Forms utilitaires (hors du formulaire principal) */}
       <div className="hidden">
-        {spot.images.map((img) => {
-          const formId = `delete-img-${img.id}`;
+        {spot.images.map((img, idx) => {
+          const deleteId = `delete-img-${img.id}`;
+          const setPrimaryId = `set-primary-${img.id}`;
           return (
-            <form key={img.id} id={formId} action={async () => {
+            <div key={`utils-${img.id}`}>
+              <form id={setPrimaryId} action={async (formData) => {
+                "use server";
+                const s2 = await getServerSession(authOptions);
+                if (!s2?.user?.id) redirect("/");
+                const imageId = img.id;
+                const spotIdInner = String(formData.get("spotId") || spot.id);
+                const current = await prisma.spot.findUnique({ where: { id: spotIdInner }, select: { userId: true } });
+                if (!current) return redirect(`/spots/${spot.id}/edit`);
+                const me2 = await prisma.user.findUnique({ where: { id: s2.user.id as string }, select: { role: true } });
+                const isAdmin2 = me2?.role === "ADMIN";
+                const isOwner2 = current.userId === (s2.user.id as string);
+                if (!isAdmin2 && !isOwner2) return redirect(`/spots/${spot.id}/edit`);
+                const minImg = await prisma.spotImage.findFirst({ where: { spotId: spotIdInner }, orderBy: { createdAt: "asc" }, select: { createdAt: true } });
+                if (minImg?.createdAt) {
+                  await prisma.spotImage.update({ where: { id: imageId }, data: { createdAt: new Date(minImg.createdAt.getTime() - 1000) } });
+                }
+                redirect(`/spots/${spot.id}/edit`);
+              }}>
+                <input type="hidden" name="spotId" value={spot.id} />
+                <input type="hidden" name="imageId" value={img.id} />
+              </form>
+              <form id={deleteId} action={async () => {
               "use server";
               const s2 = await getServerSession(authOptions);
               if (!s2?.user?.id) redirect("/");
@@ -330,7 +348,8 @@ export default async function EditSpotPage({ params }: Props) {
                 await unlink(fpath).catch(() => {});
               }
               redirect(`/spots/${spot.id}/edit`);
-            }} />
+              }} />
+            </div>
           );
         })}
         <form id="delete-spot-form" action={deleteSpot}>

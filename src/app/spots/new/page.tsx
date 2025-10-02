@@ -7,7 +7,7 @@ import path from "path";
 import { randomUUID } from "crypto";
 import TagsSelect from "@/app/(components)/TagsSelect";
 import Link from "next/link";
-import ImageFileInputPreview from "@/app/(components)/ImageFileInputPreview";
+import MultiImageUploader from "../../(components)/MultiImageUploader";
 import AuthRequiredAction from "@/app/(components)/AuthRequiredAction";
 import AuthFormWrapper from "@/app/(components)/AuthFormWrapper";
 import MapMultiSelect from "@/app/(components)/MapMultiSelect";
@@ -91,6 +91,18 @@ export default async function NewSpotPage({ searchParams }: { searchParams: Prom
       const ext = (file.name?.split(".").pop() || "").toLowerCase();
       return allowedExt.has(ext);
     });
+
+    // Contrôle de taille explicite (avant toute lecture des buffers)
+    const MAX_FILE_MB = 10;
+    const MAX_TOTAL_MB = 25;
+    const totalBytes = validImages.reduce((acc, f) => acc + Number((f as any)?.size || 0), 0);
+    const tooBigFile = validImages.find((f) => Number((f as any)?.size || 0) > MAX_FILE_MB * 1024 * 1024);
+    if (tooBigFile) {
+      return { error: `Chaque image doit faire moins de ${MAX_FILE_MB} Mo.` };
+    }
+    if (totalBytes > MAX_TOTAL_MB * 1024 * 1024) {
+      return { error: `La taille totale des images dépasse ${MAX_TOTAL_MB} Mo. Réduisez/compressez vos images.` };
+    }
     const latitude = Number(formData.get("latitude"));
     const longitude = Number(formData.get("longitude"));
     const mapIdStr = String(formData.get("mapId") || resolvedSearchParams.mapId || "").trim();
@@ -273,8 +285,7 @@ export default async function NewSpotPage({ searchParams }: { searchParams: Prom
 
           <div className="space-y-2">
             <label className="block text-sm font-medium">Images</label>
-            <ImageFileInputPreview name="images" required />
-            <p className="text-xs text-muted-foreground">Vous pouvez sélectionner plusieurs images.</p>
+            <MultiImageUploader name="images" required />
           </div>
 
           <div className="flex items-center gap-2 pt-2">

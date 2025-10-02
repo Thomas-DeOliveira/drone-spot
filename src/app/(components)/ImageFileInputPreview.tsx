@@ -27,6 +27,8 @@ export default function ImageFileInputPreview({ name, accept = "image/*", multip
     const files = Array.from(inputEl.files || []);
     // revoke old urls
     previews.forEach((p) => URL.revokeObjectURL(p.url));
+    const MAX_FILE_MB = 10; // taille max par fichier (expliquée à l'utilisateur)
+    const MAX_TOTAL_MB = 25; // taille totale max (aligne l'erreur avec Server Actions)
     const validFiles = files.filter((f) => {
       if (!f || f.size === 0) return false;
       const typeOk = (f as any).type && (f as any).type.startsWith("image/");
@@ -48,7 +50,35 @@ export default function ImageFileInputPreview({ name, accept = "image/*", multip
       return;
     }
 
-    // Il y a au moins une image valide → on accepte, mais on prévient si certains fichiers ont été ignorés
+    // Vérifier les tailles (par fichier et totale)
+    const totalBytes = validFiles.reduce((acc, f) => acc + f.size, 0);
+    const tooBigFile = validFiles.find((f) => f.size > MAX_FILE_MB * 1024 * 1024);
+    const tooBigTotal = totalBytes > MAX_TOTAL_MB * 1024 * 1024;
+
+    if (tooBigFile) {
+      const msg = `Chaque image doit faire moins de ${MAX_FILE_MB} Mo.`;
+      setError(msg);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+        inputRef.current.setCustomValidity(msg);
+        inputRef.current.reportValidity();
+      }
+      setPreviews([]);
+      return;
+    }
+
+    if (tooBigTotal) {
+      const msg = `La taille totale des images dépasse ${MAX_TOTAL_MB} Mo. Réduisez ou compressez vos images.`;
+      setError(msg);
+      if (inputRef.current) {
+        inputRef.current.setCustomValidity(msg);
+        inputRef.current.reportValidity();
+      }
+      setPreviews([]);
+      return;
+    }
+
+    // Il y a au moins une image valide et dans les limites → on accepte, mais on prévient si certains fichiers ont été ignorés
     if (inputRef.current) {
       inputRef.current.setCustomValidity("");
     }

@@ -124,7 +124,7 @@ export default function MultiImageUploader({ name, required, accept = "image/*",
     <div className={className}>
       <div className="space-y-3">
         {entries.map((e, index) => (
-          <div key={e.id} className="rounded-md border p-3 flex items-center gap-3">
+          <div key={e.id} className="rounded-md border p-3 flex flex-wrap items-center gap-3 w-full max-w-full overflow-hidden overflow-x-hidden">
             <input
               type="file"
               name={name}
@@ -134,7 +134,7 @@ export default function MultiImageUploader({ name, required, accept = "image/*",
               onChange={(ev) => handleChange(e.id, ev.currentTarget.files)}
               required={required && !hasAtLeastOne && index === 0}
             />
-            <div className="w-20 h-16 rounded-md overflow-hidden border bg-muted flex items-center justify-center">
+            <div className="w-20 h-16 rounded-md overflow-hidden border bg-muted flex items-center justify-center shrink-0">
               {e.previewUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={e.previewUrl} alt="preview" className="w-full h-full object-cover" />
@@ -142,14 +142,14 @@ export default function MultiImageUploader({ name, required, accept = "image/*",
                 <span className="text-xs text-muted-foreground">Aperçu</span>
               )}
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm truncate">{e.file?.name || "Aucune image"}</div>
+            <div className="flex-1 min-w-0 max-w-full overflow-hidden">
+              <div className="text-sm truncate max-w-[50%]">{e.file?.name || "Aucune image"}</div>
               <div className="text-xs text-muted-foreground">
                 {e.file ? `${(e.file.size / (1024 * 1024)).toFixed(2)} Mo` : ""}
                 {index === 0 && e.file ? " • Principale" : ""}
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end max-w-full overflow-hidden">
               <button type="button" className="h-8 px-2 rounded-md border bg-background text-sm"
                       onClick={() => handlePick(e.id)}>
                 {e.file ? "Changer" : "Choisir"}

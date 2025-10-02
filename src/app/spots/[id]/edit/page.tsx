@@ -285,14 +285,14 @@ export default async function EditSpotPage({ params, searchParams }: Props) {
         <div className="flex gap-2">
           <button
             type="submit"
-            className="inline-flex items-center px-4 py-2 rounded bg-primary text-primary-foreground hover:bg-primary/90"
+            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4"
           >
             Enregistrer
           </button>
           <button
             form="delete-spot-form"
             type="submit"
-            className="ml-auto inline-flex items-center px-4 py-2 rounded bg-destructive text-destructive-foreground hover:opacity-90"
+            className="ml-auto inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-destructive text-destructive-foreground hover:bg-destructive/90 h-9 px-4"
           >
             Supprimer le spot
           </button>

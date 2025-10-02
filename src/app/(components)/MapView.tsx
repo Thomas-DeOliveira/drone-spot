@@ -424,7 +424,7 @@ export function MapView({ spots, tags, currentMapId, canCreate = true }: { spots
 
     // Convertir mètres -> degrés pour un petit rayon
     const jitterLatLng = (lat: number, lng: number, index: number, total: number) => {
-      const radiusMeters = 5; // ~5m de décalage radial
+      const radiusMeters = 2; // ~2m de décalage radial
       if (total <= 1) return [lat, lng] as [number, number];
       const angle = (2 * Math.PI * index) / total;
       const metersPerDegLat = 111320; // approx

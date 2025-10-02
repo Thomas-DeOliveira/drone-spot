@@ -167,13 +167,8 @@ export default async function NewSpotPage({ searchParams }: { searchParams: Prom
         });
       }
     }
-    if (mapIdStr) {
-      return { redirectTo: `/maps/${mapIdStr}` };
-    }
-    if (targetMapIds.length > 0) {
-      return { redirectTo: `/maps/${targetMapIds[0]}` };
-    }
-    return { redirectTo: "/" };
+    // Rediriger vers la page de détail du spot créé
+    return { redirectTo: `/spots/${created.id}` };
   }
 
   return (

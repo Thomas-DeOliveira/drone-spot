@@ -130,7 +130,7 @@ export default function MultiImageUploader({ name, required, accept = "image/*",
               name={name}
               accept={accept}
               className="hidden"
-              ref={(el) => (inputRefs.current[e.id] = el)}
+              ref={(el) => { inputRefs.current[e.id] = el; }}
               onChange={(ev) => handleChange(e.id, ev.currentTarget.files)}
               required={required && !hasAtLeastOne && index === 0}
             />

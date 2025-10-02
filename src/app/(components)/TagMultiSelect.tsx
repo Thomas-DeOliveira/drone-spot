@@ -26,16 +26,16 @@ export default function TagMultiSelect({
   const [query, setQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>(() => Array.from(new Set(defaultValues)));
   const containerRef = useRef<HTMLDivElement | null>(null);
+  // Mémoriser une signature stable des valeurs par défaut pour éviter les boucles
+  const lastAppliedDefaultsSigRef = useRef<string>(JSON.stringify(Array.from(new Set(defaultValues)).sort()));
 
   useEffect(() => {
-    const newValues = Array.from(new Set(defaultValues));
-    setSelectedIds(prev => {
-      // Ne mettre à jour que si les valeurs ont vraiment changé
-      if (prev.length !== newValues.length || !prev.every(id => newValues.includes(id))) {
-        return newValues;
-      }
-      return prev;
-    });
+    const normalized = Array.from(new Set(defaultValues));
+    const sig = JSON.stringify([...normalized].sort());
+    if (sig !== lastAppliedDefaultsSigRef.current) {
+      lastAppliedDefaultsSigRef.current = sig;
+      setSelectedIds(normalized);
+    }
   }, [defaultValues]);
 
   useEffect(() => {

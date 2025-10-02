@@ -160,10 +160,12 @@ export default function MultiImageUploader({ name, required, accept = "image/*",
                   Définir comme principale
                 </button>
               )}
-              <button type="button" className="h-8 px-2 rounded-md border bg-background text-sm"
-                      onClick={() => handleRemove(e.id)}>
-                Supprimer
-              </button>
+              {e.file && (
+                <button type="button" className="h-8 px-2 rounded-md border bg-background text-sm"
+                        onClick={() => handleRemove(e.id)}>
+                  Supprimer
+                </button>
+              )}
             </div>
           </div>
         ))}
